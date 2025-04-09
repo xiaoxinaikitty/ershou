@@ -49,4 +49,22 @@
         WHERE username = #{username} 
         AND password = #{password}
     </select>
+
+    <select id="selectAdminByUsernameAndPassword" resultMap="BaseResultMap">
+        SELECT 
+            user_id,
+            username,
+            password,
+            role,
+            phone,
+            email,
+            avatar AS avatar_url,
+            balance,
+            is_locked,
+            create_time
+        FROM user 
+        WHERE username = #{username} 
+        AND password = #{password}
+        AND role = '系统管理员'
+    </select>
 </mapper>

@@ -4,6 +4,7 @@ import com.xuchao.ershou.common.ResultUtils;
 import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.model.dao.user.UserRegisterDao;
+import com.xuchao.ershou.model.dao.user.UserAdminDao;
 import com.xuchao.ershou.model.entity.User;
 import com.xuchao.ershou.service.UserService;
 import com.xuchao.ershou.common.ErrorCode;
@@ -39,5 +40,14 @@ public class UserController {
             throw new BusinessException(ErrorCode.LOGIN_FAILED);
         }
         return ResultUtils.success(user);
+    }
+
+    @PostMapping("/user/admin")
+    public Object adminLogin(@RequestBody @Valid UserAdminDao adminDao) {
+        User admin = userService.selectAdminByUsernameAndPassword(adminDao);
+        if (admin == null) {
+            throw new BusinessException(ErrorCode.LOGIN_FAILED);
+        }
+        return ResultUtils.success(admin);
     }
 }

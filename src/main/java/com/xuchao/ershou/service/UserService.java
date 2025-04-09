@@ -1,5 +1,6 @@
 package com.xuchao.ershou.service;
 
+import com.xuchao.ershou.model.dao.user.UserAdminDao;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.model.entity.User;
 
@@ -12,4 +13,5 @@ public interface UserService {
     boolean checkUsernameExists(String username);
 
     User selectUserByUsernameAndPassword(UserLoginDao loginDao);
+    User selectAdminByUsernameAndPassword(UserAdminDao adminDao);
 }

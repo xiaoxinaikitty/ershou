@@ -10,4 +10,5 @@ public interface UserMapper extends BaseMapper<User> {
     int countByUsername(String username);
     
     User selectUserByUsernameAndPassword(@Param("username") String username, @Param("password") String password);
+    User selectAdminByUsernameAndPassword(@Param("username") String username, @Param("password") String password);
 }

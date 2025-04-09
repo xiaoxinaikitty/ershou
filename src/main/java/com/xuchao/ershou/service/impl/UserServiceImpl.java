@@ -1,6 +1,7 @@
 package com.xuchao.ershou.service.impl;
 
 import com.xuchao.ershou.mapper.UserMapper;
+import com.xuchao.ershou.model.dao.user.UserAdminDao;
 import com.xuchao.ershou.model.entity.User;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.service.UserService;
@@ -42,6 +43,14 @@ public class UserServiceImpl implements UserService {
         return userMapper.selectUserByUsernameAndPassword(
             loginDao.getUsername(), 
             loginDao.getPassword()
+        );
+    }
+
+    @Override
+    public User selectAdminByUsernameAndPassword(UserAdminDao adminDao) {
+        return userMapper.selectAdminByUsernameAndPassword(
+            adminDao.getUsername(),
+            adminDao.getPassword()
         );
     }
 }
