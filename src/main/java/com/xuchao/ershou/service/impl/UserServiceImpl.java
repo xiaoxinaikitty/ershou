@@ -2,6 +2,7 @@ package com.xuchao.ershou.service.impl;
 
 import com.xuchao.ershou.mapper.UserMapper;
 import com.xuchao.ershou.model.entity.User;
+import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,5 +35,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean checkUsernameExists(String username) {
         return userMapper.countByUsername(username) > 0;
+    }
+
+    @Override
+    public User selectUserByUsernameAndPassword(UserLoginDao loginDao) {
+        return userMapper.selectUserByUsernameAndPassword(
+            loginDao.getUsername(), 
+            loginDao.getPassword()
+        );
     }
 }

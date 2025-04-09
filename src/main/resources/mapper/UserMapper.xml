@@ -32,4 +32,21 @@
         FROM user 
         WHERE username = #{username}
     </select>
+
+    <select id="selectUserByUsernameAndPassword" resultMap="BaseResultMap">
+        SELECT 
+            user_id,
+            username,
+            password,
+            role,
+            phone,
+            email,
+            avatar AS avatar_url,
+            balance,
+            is_locked,
+            create_time
+        FROM user 
+        WHERE username = #{username} 
+        AND password = #{password}
+    </select>
 </mapper>

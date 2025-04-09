@@ -10,6 +10,7 @@ public enum ErrorCode {
 
     LOGIN_PARAMS_ERROR(40001, "用户名或密码错误", "用户传入了不匹配的用户名和密码"),
     REGISTER_USER_EXIST(40002, "用户已存在", "用户已存在"),
+    LOGIN_FAILED(40003, "登录失败", "用户名或密码错误"),
 
     SYSTEM_ERROR(50000, "系统内部异常", "服务器运行时异常");
 

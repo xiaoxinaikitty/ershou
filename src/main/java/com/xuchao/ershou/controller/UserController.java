@@ -2,6 +2,7 @@ package com.xuchao.ershou.controller;
 
 import com.xuchao.ershou.common.ResultUtils;
 import com.xuchao.ershou.exception.BusinessException;
+import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.model.dao.user.UserRegisterDao;
 import com.xuchao.ershou.model.entity.User;
 import com.xuchao.ershou.service.UserService;
@@ -29,5 +30,14 @@ public class UserController {
             .setPassword(registerDao.getPassword());
         userService.insertUser(user);
         return ResultUtils.success("注册成功");
+    }
+
+    @PostMapping("/user/login")
+    public Object login(@RequestBody @Valid UserLoginDao loginDao) {
+        User user = userService.selectUserByUsernameAndPassword(loginDao);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.LOGIN_FAILED);
+        }
+        return ResultUtils.success(user);
     }
 }
