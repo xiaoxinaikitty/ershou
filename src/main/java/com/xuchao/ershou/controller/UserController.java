@@ -1,13 +1,17 @@
 package com.xuchao.ershou.controller;
 
+import com.xuchao.ershou.common.CurrentUserUtils;
 import com.xuchao.ershou.common.ResultUtils;
 import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.model.dao.user.UserRegisterDao;
 import com.xuchao.ershou.model.dao.user.UserAdminDao;
+import com.xuchao.ershou.model.dao.user.UserAddressDao;
 import com.xuchao.ershou.model.entity.User;
+import com.xuchao.ershou.model.entity.UserAddress;
 import com.xuchao.ershou.service.UserService;
 import com.xuchao.ershou.common.ErrorCode;
+import com.xuchao.ershou.common.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping("/user/register")
     public Object register(@RequestBody @Valid UserRegisterDao registerDao) {
@@ -39,7 +46,8 @@ public class UserController {
         if (user == null) {
             throw new BusinessException(ErrorCode.LOGIN_FAILED);
         }
-        return ResultUtils.success(user);
+        String token = jwtUtil.generateToken(user.getUserId(), user.getUsername());
+        return ResultUtils.success(token);
     }
 
     @PostMapping("/user/admin")
@@ -49,5 +57,13 @@ public class UserController {
             throw new BusinessException(ErrorCode.LOGIN_FAILED);
         }
         return ResultUtils.success(admin);
+    }
+
+    @PostMapping("/user/address")
+    public Object addAddress(@RequestBody @Valid UserAddress address) {
+        Long currentUserId = CurrentUserUtils.getCurrentUserId();
+        address.setUserId(currentUserId);
+        userService.insertUserAddress(address);
+        return ResultUtils.success("地址添加成功");
     }
 }

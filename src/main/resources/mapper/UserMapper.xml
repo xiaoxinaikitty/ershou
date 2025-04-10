@@ -67,4 +67,22 @@
         AND password = #{password}
         AND role = '系统管理员'
     </select>
+
+    <insert id="insertUserAddress" parameterType="com.xuchao.ershou.model.entity.UserAddress" useGeneratedKeys="true" keyProperty="addressId">
+        INSERT INTO user_address (
+            user_id,
+            consignee,
+            region,
+            detail,
+            contact_phone,
+            is_default
+        ) VALUES (
+            #{userId},
+            #{consignee},
+            #{region},
+            #{detail},
+            #{contactPhone},
+            #{isDefault}
+        )
+    </insert>
 </mapper>

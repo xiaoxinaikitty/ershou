@@ -1,8 +1,10 @@
 package com.xuchao.ershou.service;
 
+import com.xuchao.ershou.model.dao.user.UserAddressDao;
 import com.xuchao.ershou.model.dao.user.UserAdminDao;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.model.entity.User;
+import com.xuchao.ershou.model.entity.UserAddress;
 
 public interface UserService {
     int insertUser(User user);
@@ -14,4 +16,6 @@ public interface UserService {
 
     User selectUserByUsernameAndPassword(UserLoginDao loginDao);
     User selectAdminByUsernameAndPassword(UserAdminDao adminDao);
+    
+    int insertUserAddress(UserAddress userAddress);
 }

@@ -2,6 +2,7 @@ package com.xuchao.ershou.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xuchao.ershou.model.entity.User;
+import com.xuchao.ershou.model.entity.UserAddress;
 import org.apache.ibatis.annotations.Param;
 
 public interface UserMapper extends BaseMapper<User> {
@@ -11,4 +12,6 @@ public interface UserMapper extends BaseMapper<User> {
     
     User selectUserByUsernameAndPassword(@Param("username") String username, @Param("password") String password);
     User selectAdminByUsernameAndPassword(@Param("username") String username, @Param("password") String password);
+    
+    int insertUserAddress(UserAddress userAddress);
 }

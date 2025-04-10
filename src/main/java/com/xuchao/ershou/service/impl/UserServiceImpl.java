@@ -4,6 +4,8 @@ import com.xuchao.ershou.mapper.UserMapper;
 import com.xuchao.ershou.model.dao.user.UserAdminDao;
 import com.xuchao.ershou.model.entity.User;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
+import com.xuchao.ershou.model.dao.user.UserAddressDao;
+import com.xuchao.ershou.model.entity.UserAddress;
 import com.xuchao.ershou.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -52,5 +54,10 @@ public class UserServiceImpl implements UserService {
             adminDao.getUsername(),
             adminDao.getPassword()
         );
+    }
+
+    @Override
+    public int insertUserAddress(UserAddress userAddress) {
+        return userMapper.insertUserAddress(userAddress);
     }
 }
