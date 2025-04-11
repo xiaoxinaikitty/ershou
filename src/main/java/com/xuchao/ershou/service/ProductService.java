@@ -31,4 +31,12 @@ public interface ProductService {
      * @return 更新后的商品信息
      */
     Product updateProduct(Long userId, ProductUpdateDao productUpdateDao);
+    
+    /**
+     * 删除商品（将状态设置为下架）
+     * @param userId 当前登录用户ID
+     * @param productId 商品ID
+     * @return 操作是否成功
+     */
+    boolean deleteProduct(Long userId, Long productId);
 }

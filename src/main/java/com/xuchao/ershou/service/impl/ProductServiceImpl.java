@@ -142,4 +142,41 @@ public class ProductServiceImpl implements ProductService {
         // 返回更新后的完整商品信息
         return productMapper.selectProductById(productUpdateDao.getProductId());
     }
+    
+    @Override
+    public boolean deleteProduct(Long userId, Long productId) {
+        // 参数校验
+        if (productId == null || productId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "商品ID无效");
+        }
+        
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        // 查询商品是否存在
+        Product existProduct = productMapper.selectProductById(productId);
+        if (existProduct == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "商品不存在");
+        }
+        
+        // 校验当前用户是否为商品发布者
+        if (!existProduct.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "无权限下架他人发布的商品");
+        }
+        
+        // 如果商品已经是下架状态，直接返回成功
+        if (existProduct.getStatus() != null && existProduct.getStatus() == 0) {
+            return true;
+        }
+        
+        // 创建更新对象，将商品状态设置为下架(0)
+        Product updateProduct = new Product();
+        updateProduct.setProductId(productId);
+        updateProduct.setStatus(0); // 0表示下架状态
+        
+        // 执行更新
+        int result = productMapper.updateProduct(updateProduct);
+        return result > 0;
+    }
 }
