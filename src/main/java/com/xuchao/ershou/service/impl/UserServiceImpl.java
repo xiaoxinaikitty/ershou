@@ -297,12 +297,6 @@ public class UserServiceImpl implements UserService {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "该用户当前未被封禁");
         }
         
-        // 4. 更新用户状态为正常
-        targetUser.setIsLocked(false);
-        
-        // 5. 清除封禁原因
-        targetUser.setBanReason(null);
-        
         // 记录解封操作的日志
         String unbanReason = userUnbanDao.getUnbanReason();
         if (!StringUtils.hasText(unbanReason)) {
@@ -313,8 +307,15 @@ public class UserServiceImpl implements UserService {
         System.out.println("用户" + targetUser.getUsername() + "被解封，解封时间：" 
             + LocalDateTime.now() + ", 原因：" + unbanReason + ", 操作管理员: " + currentUser.getUsername());
         
-        // 6. 执行更新操作
-        int result = userMapper.updateById(targetUser);
+        // 4. 使用UpdateWrapper明确指定要更新的字段，确保将ban_reason设置为null
+        com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<User> updateWrapper = 
+            new com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper<>();
+        updateWrapper.eq("user_id", targetUserId)
+                     .set("is_locked", false)
+                     .set("ban_reason", null);
+        
+        // 5. 执行更新操作
+        int result = userMapper.update(null, updateWrapper);
         
         return result > 0;
     }

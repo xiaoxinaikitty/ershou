@@ -11,6 +11,7 @@ import com.xuchao.ershou.model.dao.user.UserRegisterDao;
 import com.xuchao.ershou.model.dao.user.UserAdminDao;
 import com.xuchao.ershou.model.dao.user.UserAddressDao;
 import com.xuchao.ershou.model.dao.user.UserRoleUpdateDao;
+import com.xuchao.ershou.model.dao.user.UserUnbanDao;
 import com.xuchao.ershou.model.dao.user.UserUpdateDao;
 import com.xuchao.ershou.model.entity.User;
 import com.xuchao.ershou.model.entity.UserAddress;
@@ -215,6 +216,29 @@ public class UserController {
             return ResultUtils.success("用户封禁成功");
         } else {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "用户封禁失败");
+        }
+    }
+    
+    /**
+     * 解封用户（仅管理员可用）
+     * @param userUnbanDao 解封用户请求体
+     * @return 处理结果
+     */
+    @PutMapping("/admin/user/unban")
+    public BaseResponse<String> unbanUser(@RequestBody @Valid UserUnbanDao userUnbanDao) {
+        // 从当前请求中获取用户ID
+        Long currentUserId = CurrentUserUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        // 调用服务层方法解封用户
+        boolean success = userService.unbanUser(currentUserId, userUnbanDao);
+        
+        if (success) {
+            return ResultUtils.success("用户解封成功");
+        } else {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "用户解封失败");
         }
     }
 }
