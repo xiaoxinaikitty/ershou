@@ -2,9 +2,11 @@ package com.xuchao.ershou.service;
 
 import com.xuchao.ershou.model.dao.user.UserAddressDao;
 import com.xuchao.ershou.model.dao.user.UserAdminDao;
+import com.xuchao.ershou.model.dao.user.UserBanDao;
 import com.xuchao.ershou.model.dao.user.UserChangePasswordDao;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.model.dao.user.UserRoleUpdateDao;
+import com.xuchao.ershou.model.dao.user.UserUnbanDao;
 import com.xuchao.ershou.model.dao.user.UserUpdateDao;
 import com.xuchao.ershou.model.entity.User;
 import com.xuchao.ershou.model.entity.UserAddress;
@@ -56,4 +58,20 @@ public interface UserService {
      * @return 是否修改成功
      */
     boolean updateUserRole(Long currentUserId, UserRoleUpdateDao roleUpdateDao);
+    
+    /**
+     * 封禁用户（仅管理员可操作）
+     * @param currentUserId 当前操作的用户ID（必须是管理员）
+     * @param userBanDao 封禁信息
+     * @return 是否封禁成功
+     */
+    boolean banUser(Long currentUserId, UserBanDao userBanDao);
+    
+    /**
+     * 解封用户（仅管理员可操作）
+     * @param currentUserId 当前操作的用户ID（必须是管理员）
+     * @param userUnbanDao 解封信息
+     * @return 是否解封成功
+     */
+    boolean unbanUser(Long currentUserId, UserUnbanDao userUnbanDao);
 }

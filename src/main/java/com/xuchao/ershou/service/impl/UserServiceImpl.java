@@ -3,8 +3,10 @@ package com.xuchao.ershou.service.impl;
 import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.mapper.UserMapper;
 import com.xuchao.ershou.model.dao.user.UserAdminDao;
+import com.xuchao.ershou.model.dao.user.UserBanDao;
 import com.xuchao.ershou.model.dao.user.UserChangePasswordDao;
 import com.xuchao.ershou.model.dao.user.UserRoleUpdateDao;
+import com.xuchao.ershou.model.dao.user.UserUnbanDao;
 import com.xuchao.ershou.model.dao.user.UserUpdateDao;
 import com.xuchao.ershou.model.entity.User;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Service;
 import com.xuchao.ershou.common.ErrorCode;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Service
@@ -216,5 +219,103 @@ public class UserServiceImpl implements UserService {
         userRoleVO.setIsAdmin(isAdmin);
         
         return userRoleVO;
+    }
+
+    @Override
+    public boolean banUser(Long currentUserId, UserBanDao userBanDao) {
+        // 1. 检查当前用户是否是管理员
+        User currentUser = userMapper.selectById(currentUserId);
+        if (currentUser == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "当前用户不存在");
+        }
+        
+        // 仅允许系统管理员进行封禁操作
+        if (!ADMIN_ROLE.equals(currentUser.getRole())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "权限不足，仅系统管理员可执行此操作");
+        }
+        
+        // 2. 检查目标用户是否存在
+        Long targetUserId = userBanDao.getTargetUserId();
+        User targetUser = userMapper.selectById(targetUserId);
+        if (targetUser == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "目标用户不存在");
+        }
+        
+        // 3. 不允许封禁管理员用户
+        if (ADMIN_ROLE.equals(targetUser.getRole())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "不允许封禁管理员账户");
+        }
+        
+        // 4. 如果用户已被封禁，直接返回成功
+        if (targetUser.getIsLocked() != null && targetUser.getIsLocked()) {
+            return true;
+        }
+        
+        // 5. 更新用户状态为封禁
+        targetUser.setIsLocked(true);
+        
+        // 6. 设置封禁原因
+        String banReason = userBanDao.getBanReason();
+        if (!StringUtils.hasText(banReason)) {
+            banReason = "违反用户协议";
+        }
+        
+        // 将封禁原因保存到用户对象中
+        targetUser.setBanReason(banReason);
+        
+        // 记录日志
+        System.out.println("用户" + targetUser.getUsername() + "被封禁，封禁时间：" + LocalDateTime.now() + ", 原因：" + banReason);
+        
+        // 7. 执行更新操作
+        int result = userMapper.updateById(targetUser);
+        
+        return result > 0;
+    }
+
+    @Override
+    public boolean unbanUser(Long currentUserId, UserUnbanDao userUnbanDao) {
+        // 1. 检查当前用户是否是管理员
+        User currentUser = userMapper.selectById(currentUserId);
+        if (currentUser == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "当前用户不存在");
+        }
+        
+        // 仅允许系统管理员进行解封操作
+        if (!ADMIN_ROLE.equals(currentUser.getRole())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "权限不足，仅系统管理员可执行此操作");
+        }
+        
+        // 2. 检查目标用户是否存在
+        Long targetUserId = userUnbanDao.getTargetUserId();
+        User targetUser = userMapper.selectById(targetUserId);
+        if (targetUser == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "目标用户不存在");
+        }
+        
+        // 3. 检查用户是否处于封禁状态
+        if (targetUser.getIsLocked() == null || !targetUser.getIsLocked()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "该用户当前未被封禁");
+        }
+        
+        // 4. 更新用户状态为正常
+        targetUser.setIsLocked(false);
+        
+        // 5. 清除封禁原因
+        targetUser.setBanReason(null);
+        
+        // 记录解封操作的日志
+        String unbanReason = userUnbanDao.getUnbanReason();
+        if (!StringUtils.hasText(unbanReason)) {
+            unbanReason = "管理员手动操作";
+        }
+        
+        // 记录解封日志（实际项目中可以存入数据库的操作日志表）
+        System.out.println("用户" + targetUser.getUsername() + "被解封，解封时间：" 
+            + LocalDateTime.now() + ", 原因：" + unbanReason + ", 操作管理员: " + currentUser.getUsername());
+        
+        // 6. 执行更新操作
+        int result = userMapper.updateById(targetUser);
+        
+        return result > 0;
     }
 }

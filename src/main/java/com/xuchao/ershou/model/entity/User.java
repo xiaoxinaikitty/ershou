@@ -44,6 +44,9 @@ public class User implements Serializable {
 
     @TableField("is_locked")
     private Boolean isLocked;
+    
+    @TableField("ban_reason")
+    private String banReason;
 
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;

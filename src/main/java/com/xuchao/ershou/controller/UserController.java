@@ -4,6 +4,7 @@ import com.xuchao.ershou.common.BaseResponse;
 import com.xuchao.ershou.common.CurrentUserUtils;
 import com.xuchao.ershou.common.ResultUtils;
 import com.xuchao.ershou.exception.BusinessException;
+import com.xuchao.ershou.model.dao.user.UserBanDao;
 import com.xuchao.ershou.model.dao.user.UserChangePasswordDao;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.model.dao.user.UserRegisterDao;
@@ -191,6 +192,29 @@ public class UserController {
             return ResultUtils.success("用户角色修改成功");
         } else {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "用户角色修改失败");
+        }
+    }
+    
+    /**
+     * 封禁用户（仅管理员可用）
+     * @param userBanDao 封禁用户请求体
+     * @return 处理结果
+     */
+    @PutMapping("/admin/user/ban")
+    public BaseResponse<String> banUser(@RequestBody @Valid UserBanDao userBanDao) {
+        // 从当前请求中获取用户ID
+        Long currentUserId = CurrentUserUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        // 调用服务层方法封禁用户
+        boolean success = userService.banUser(currentUserId, userBanDao);
+        
+        if (success) {
+            return ResultUtils.success("用户封禁成功");
+        } else {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "用户封禁失败");
         }
     }
 }
