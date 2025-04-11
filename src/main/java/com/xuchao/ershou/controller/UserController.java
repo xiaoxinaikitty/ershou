@@ -1,5 +1,6 @@
 package com.xuchao.ershou.controller;
 
+import com.xuchao.ershou.common.BaseResponse;
 import com.xuchao.ershou.common.CurrentUserUtils;
 import com.xuchao.ershou.common.ResultUtils;
 import com.xuchao.ershou.exception.BusinessException;
@@ -14,6 +15,7 @@ import com.xuchao.ershou.common.ErrorCode;
 import com.xuchao.ershou.common.JwtUtil;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -65,5 +67,26 @@ public class UserController {
         address.setUserId(currentUserId);
         userService.insertUserAddress(address);
         return ResultUtils.success("地址添加成功");
+    }
+    
+    /**
+     * 获取当前登录用户信息
+     * @return 用户信息（不包括敏感字段）
+     */
+    @GetMapping("/user/info")
+    public BaseResponse<User> getUserInfo() {
+        // 从当前请求中获取用户ID
+        Long currentUserId = CurrentUserUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        // 查询用户信息
+        User userInfo = userService.getUserInfo(currentUserId);
+        if (userInfo == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "用户不存在");
+        }
+        
+        return ResultUtils.success(userInfo);
     }
 }

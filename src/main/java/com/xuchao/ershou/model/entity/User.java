@@ -36,18 +36,15 @@ public class User implements Serializable {
     @TableField("email")
     private String email;
 
-    @TableField("avatar_url")
-    private String avatarUrl;
+    @TableField("avatar")
+    private String avatar;
 
     @TableField("balance")
     private BigDecimal balance;
 
     @TableField("is_locked")
-    private Integer isLocked;
+    private Boolean isLocked;
 
     @TableField(value = "create_time", fill = FieldFill.INSERT)
     private LocalDateTime createTime;
-
-    @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
 }

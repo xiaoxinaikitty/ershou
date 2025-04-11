@@ -18,4 +18,7 @@ public interface UserService {
     User selectAdminByUsernameAndPassword(UserAdminDao adminDao);
     
     int insertUserAddress(UserAddress userAddress);
+    
+    // 获取用户详细信息（非敏感字段）
+    User getUserInfo(Long userId);
 }

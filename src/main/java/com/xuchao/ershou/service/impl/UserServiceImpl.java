@@ -60,4 +60,14 @@ public class UserServiceImpl implements UserService {
     public int insertUserAddress(UserAddress userAddress) {
         return userMapper.insertUserAddress(userAddress);
     }
+    
+    @Override
+    public User getUserInfo(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user != null) {
+            // 清除敏感字段
+            user.setPassword(null);
+        }
+        return user;
+    }
 }
