@@ -4,6 +4,7 @@ import com.xuchao.ershou.common.BaseResponse;
 import com.xuchao.ershou.common.CurrentUserUtils;
 import com.xuchao.ershou.common.ResultUtils;
 import com.xuchao.ershou.exception.BusinessException;
+import com.xuchao.ershou.model.dao.user.UserChangePasswordDao;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.model.dao.user.UserRegisterDao;
 import com.xuchao.ershou.model.dao.user.UserAdminDao;
@@ -109,5 +110,28 @@ public class UserController {
         User updatedUser = userService.updateUserInfo(currentUserId, updateDao);
         
         return ResultUtils.success(updatedUser);
+    }
+    
+    /**
+     * 修改当前登录用户密码
+     * @param passwordDao 包含旧密码和新密码的请求体
+     * @return 修改结果
+     */
+    @PutMapping("/user/password")
+    public BaseResponse<String> changePassword(@RequestBody @Valid UserChangePasswordDao passwordDao) {
+        // 从当前请求中获取用户ID
+        Long currentUserId = CurrentUserUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        // 修改密码
+        boolean success = userService.changePassword(currentUserId, passwordDao);
+        
+        if (success) {
+            return ResultUtils.success("密码修改成功");
+        } else {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "密码修改失败");
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.xuchao.ershou.service.impl;
 import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.mapper.UserMapper;
 import com.xuchao.ershou.model.dao.user.UserAdminDao;
+import com.xuchao.ershou.model.dao.user.UserChangePasswordDao;
 import com.xuchao.ershou.model.dao.user.UserUpdateDao;
 import com.xuchao.ershou.model.entity.User;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
@@ -13,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.xuchao.ershou.common.ErrorCode;
 import org.springframework.util.StringUtils;
+
+import java.util.Objects;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -117,5 +120,30 @@ public class UserServiceImpl implements UserService {
         // 返回更新后的用户信息（去除敏感字段）
         user.setPassword(null);
         return user;
+    }
+    
+    @Override
+    public boolean changePassword(Long userId, UserChangePasswordDao passwordDao) {
+        // 1. 参数校验
+        if (!Objects.equals(passwordDao.getNewPassword(), passwordDao.getConfirmPassword())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的新密码不一致");
+        }
+        
+        // 2. 检查用户是否存在
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "用户不存在");
+        }
+        
+        // 3. 校验旧密码是否正确
+        if (!Objects.equals(user.getPassword(), passwordDao.getOldPassword())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "旧密码不正确");
+        }
+        
+        // 4. 更新密码
+        user.setPassword(passwordDao.getNewPassword());
+        int result = userMapper.updateById(user);
+        
+        return result > 0;
     }
 }

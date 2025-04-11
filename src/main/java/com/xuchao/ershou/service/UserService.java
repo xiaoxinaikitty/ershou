@@ -2,6 +2,7 @@ package com.xuchao.ershou.service;
 
 import com.xuchao.ershou.model.dao.user.UserAddressDao;
 import com.xuchao.ershou.model.dao.user.UserAdminDao;
+import com.xuchao.ershou.model.dao.user.UserChangePasswordDao;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.model.dao.user.UserUpdateDao;
 import com.xuchao.ershou.model.entity.User;
@@ -30,4 +31,12 @@ public interface UserService {
      * @return 更新后的用户信息
      */
     User updateUserInfo(Long userId, UserUpdateDao updateDao);
+    
+    /**
+     * 修改用户密码
+     * @param userId 用户ID
+     * @param passwordDao 密码修改信息(旧密码、新密码)
+     * @return 是否修改成功
+     */
+    boolean changePassword(Long userId, UserChangePasswordDao passwordDao);
 }
