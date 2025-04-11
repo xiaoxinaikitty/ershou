@@ -44,4 +44,39 @@
             CURRENT_TIMESTAMP
         )
     </insert>
+    
+    <select id="selectProductById" resultMap="BaseResultMap">
+        SELECT
+            product_id,
+            title,
+            description,
+            price,
+            original_price,
+            category_id,
+            user_id,
+            condition_level,
+            status,
+            location,
+            view_count,
+            created_time,
+            updated_time
+        FROM product
+        WHERE product_id = #{productId}
+    </select>
+    
+    <update id="updateProduct" parameterType="com.xuchao.ershou.model.entity.Product">
+        UPDATE product
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="originalPrice != null">original_price = #{originalPrice},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="conditionLevel != null">condition_level = #{conditionLevel},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="location != null">location = #{location},</if>
+            updated_time = CURRENT_TIMESTAMP
+        </set>
+        WHERE product_id = #{productId}
+    </update>
 </mapper>

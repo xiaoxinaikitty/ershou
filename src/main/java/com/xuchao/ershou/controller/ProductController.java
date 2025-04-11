@@ -5,17 +5,13 @@ import com.xuchao.ershou.common.CurrentUserUtils;
 import com.xuchao.ershou.common.ResultUtils;
 import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.model.dao.product.ProductAddDao;
+import com.xuchao.ershou.model.dao.product.ProductUpdateDao;
 import com.xuchao.ershou.model.entity.Product;
 import com.xuchao.ershou.service.ProductService;
 import com.xuchao.ershou.common.ErrorCode;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 商品控制器
@@ -51,10 +47,34 @@ public class ProductController {
      * @param productId 商品ID
      * @return 商品详细信息
      */
-    @GetMapping("/{productId}")
-    public BaseResponse<Product> getProductById(@PathVariable Long productId) {
-        // 调用服务层查询商品
+    @GetMapping("/detail/{productId}")
+    public BaseResponse<Product> getProductDetail(@PathVariable Long productId) {
+        if (productId == null || productId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "商品ID无效");
+        }
+        
+        // 调用服务层查询商品详情
         Product product = productService.getProductById(productId);
+        
         return ResultUtils.success(product);
+    }
+    
+    /**
+     * 更新商品信息
+     * @param productUpdateDao 商品更新信息
+     * @return 更新后的商品信息
+     */
+    @PutMapping("/update")
+    public BaseResponse<Product> updateProduct(@RequestBody @Valid ProductUpdateDao productUpdateDao) {
+        // 获取当前登录用户ID
+        Long currentUserId = CurrentUserUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        // 调用服务层更新商品
+        Product updatedProduct = productService.updateProduct(currentUserId, productUpdateDao);
+        
+        return ResultUtils.success(updatedProduct);
     }
 }
