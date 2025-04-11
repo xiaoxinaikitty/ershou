@@ -8,6 +8,7 @@ import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.model.dao.user.UserRegisterDao;
 import com.xuchao.ershou.model.dao.user.UserAdminDao;
 import com.xuchao.ershou.model.dao.user.UserAddressDao;
+import com.xuchao.ershou.model.dao.user.UserUpdateDao;
 import com.xuchao.ershou.model.entity.User;
 import com.xuchao.ershou.model.entity.UserAddress;
 import com.xuchao.ershou.service.UserService;
@@ -17,6 +18,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -88,5 +90,24 @@ public class UserController {
         }
         
         return ResultUtils.success(userInfo);
+    }
+    
+    /**
+     * 修改当前登录用户信息
+     * @param updateDao 要修改的用户信息
+     * @return 修改后的用户信息
+     */
+    @PutMapping("/user/info")
+    public BaseResponse<User> updateUserInfo(@RequestBody @Valid UserUpdateDao updateDao) {
+        // 从当前请求中获取用户ID
+        Long currentUserId = CurrentUserUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        // 更新并获取最新的用户信息
+        User updatedUser = userService.updateUserInfo(currentUserId, updateDao);
+        
+        return ResultUtils.success(updatedUser);
     }
 }
