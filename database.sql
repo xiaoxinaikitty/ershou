@@ -29,3 +29,66 @@ CREATE TABLE `user_address` (
   KEY `idx_user` (`user_id`),
   CONSTRAINT `fk_address_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户地址表';
+
+-- 商品信息表
+CREATE TABLE product (
+    product_id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '商品ID',
+    title VARCHAR(100) NOT NULL COMMENT '商品标题',
+    description TEXT COMMENT '商品详细描述',
+    price DECIMAL(10,2) NOT NULL COMMENT '商品价格',
+    original_price DECIMAL(10,2) COMMENT '物品原价',
+    category_id INT NOT NULL COMMENT '商品分类ID',
+    user_id BIGINT NOT NULL COMMENT '发布用户ID',
+    condition_level TINYINT COMMENT '物品成色(1-10级)',
+    status TINYINT NOT NULL DEFAULT 1 COMMENT '商品状态(0下架 1在售 2已售)',
+    location VARCHAR(200) COMMENT '商品所在地',
+    view_count INT DEFAULT 0 COMMENT '浏览次数',
+    created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发布时间',
+    updated_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_category (category_id),
+    INDEX idx_user (user_id)
+) COMMENT '商品信息表';
+
+-- 商品图片表
+CREATE TABLE product_image (
+    image_id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '图片ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID',
+    image_url VARCHAR(255) NOT NULL COMMENT '图片URL',
+    is_main TINYINT DEFAULT 0 COMMENT '是否主图(0否 1是)',
+    sort_order INT DEFAULT 0 COMMENT '图片排序',
+    created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    INDEX idx_product (product_id)
+) COMMENT '商品图片表';
+
+-- 商品分类表
+CREATE TABLE product_category (
+    category_id INT PRIMARY KEY AUTO_INCREMENT COMMENT '分类ID',
+    parent_id INT DEFAULT 0 COMMENT '父分类ID',
+    category_name VARCHAR(50) NOT NULL COMMENT '分类名称',
+    sort_order INT DEFAULT 0 COMMENT '排序号',
+    status TINYINT DEFAULT 1 COMMENT '状态(0禁用 1启用)',
+    created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    INDEX idx_parent (parent_id)
+) COMMENT '商品分类表';
+
+-- 商品收藏表
+CREATE TABLE product_favorite (
+    favorite_id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '收藏ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID',
+    created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '收藏时间',
+    UNIQUE KEY uk_user_product (user_id, product_id)
+) COMMENT '商品收藏表';
+
+-- 商品举报表
+CREATE TABLE product_report (
+    report_id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '举报ID',
+    product_id BIGINT NOT NULL COMMENT '商品ID',
+    user_id BIGINT NOT NULL COMMENT '举报用户ID',
+    report_type TINYINT NOT NULL COMMENT '举报类型(1虚假商品 2违禁品 3侵权等)',
+    report_content TEXT COMMENT '举报内容',
+    status TINYINT DEFAULT 0 COMMENT '处理状态(0未处理 1已处理)',
+    created_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '举报时间',
+    handle_time DATETIME COMMENT '处理时间',
+    INDEX idx_product (product_id)
+) COMMENT '商品举报表';

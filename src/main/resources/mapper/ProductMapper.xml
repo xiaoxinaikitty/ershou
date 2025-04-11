@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuchao.ershou.mapper.ProductMapper">
+    <resultMap id="BaseResultMap" type="com.xuchao.ershou.model.entity.Product">
+        <id column="product_id" property="productId" jdbcType="BIGINT"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="price" property="price" jdbcType="DECIMAL"/>
+        <result column="original_price" property="originalPrice" jdbcType="DECIMAL"/>
+        <result column="category_id" property="categoryId" jdbcType="INTEGER"/>
+        <result column="user_id" property="userId" jdbcType="BIGINT"/>
+        <result column="condition_level" property="conditionLevel" jdbcType="TINYINT"/>
+        <result column="status" property="status" jdbcType="TINYINT"/>
+        <result column="location" property="location" jdbcType="VARCHAR"/>
+        <result column="view_count" property="viewCount" jdbcType="INTEGER"/>
+        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
+        <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <insert id="insertProduct" parameterType="com.xuchao.ershou.model.entity.Product" useGeneratedKeys="true" keyProperty="productId">
+        INSERT INTO product (
+            title,
+            description,
+            price,
+            original_price,
+            category_id,
+            user_id,
+            condition_level,
+            status,
+            location,
+            view_count,
+            created_time
+        ) VALUES (
+            #{title},
+            #{description},
+            #{price},
+            #{originalPrice},
+            #{categoryId},
+            #{userId},
+            #{conditionLevel},
+            #{status},
+            #{location},
+            #{viewCount},
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+</mapper>
