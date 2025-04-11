@@ -9,9 +9,11 @@ import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.model.dao.user.UserRegisterDao;
 import com.xuchao.ershou.model.dao.user.UserAdminDao;
 import com.xuchao.ershou.model.dao.user.UserAddressDao;
+import com.xuchao.ershou.model.dao.user.UserRoleUpdateDao;
 import com.xuchao.ershou.model.dao.user.UserUpdateDao;
 import com.xuchao.ershou.model.entity.User;
 import com.xuchao.ershou.model.entity.UserAddress;
+import com.xuchao.ershou.model.vo.UserRoleVO;
 import com.xuchao.ershou.service.UserService;
 import com.xuchao.ershou.common.ErrorCode;
 import com.xuchao.ershou.common.JwtUtil;
@@ -22,6 +24,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 public class UserController {
@@ -55,13 +59,27 @@ public class UserController {
         return ResultUtils.success(token);
     }
 
+    /**
+     * 管理员登录接口
+     * @param adminDao 管理员登录信息
+     * @return token和登录成功的提示
+     */
     @PostMapping("/user/admin")
-    public Object adminLogin(@RequestBody @Valid UserAdminDao adminDao) {
+    public BaseResponse<Map<String, Object>> adminLogin(@RequestBody @Valid UserAdminDao adminDao) {
         User admin = userService.selectAdminByUsernameAndPassword(adminDao);
         if (admin == null) {
             throw new BusinessException(ErrorCode.LOGIN_FAILED);
         }
-        return ResultUtils.success(admin);
+        
+        // 生成token
+        String token = jwtUtil.generateToken(admin.getUserId(), admin.getUsername());
+        
+        // 构造返回结果
+        Map<String, Object> result = new HashMap<>();
+        result.put("token", token);
+        result.put("message", "管理员登录成功");
+        
+        return ResultUtils.success(result);
     }
 
     @PostMapping("/user/address")
@@ -132,6 +150,47 @@ public class UserController {
             return ResultUtils.success("密码修改成功");
         } else {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "密码修改失败");
+        }
+    }
+    
+    /**
+     * 获取当前登录用户角色信息
+     * @return 角色信息
+     */
+    @GetMapping("/user/role")
+    public BaseResponse<UserRoleVO> getUserRole() {
+        // 从当前请求中获取用户ID
+        Long currentUserId = CurrentUserUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        // 查询用户角色信息
+        UserRoleVO userRoleVO = userService.getUserRole(currentUserId);
+        
+        return ResultUtils.success(userRoleVO);
+    }
+    
+    /**
+     * 修改用户角色（仅管理员可用）
+     * @param roleUpdateDao 角色更新请求
+     * @return 处理结果
+     */
+    @PutMapping("/admin/user/role")
+    public BaseResponse<String> updateUserRole(@RequestBody @Valid UserRoleUpdateDao roleUpdateDao) {
+        // 从当前请求中获取用户ID
+        Long currentUserId = CurrentUserUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        // 调用服务层方法修改用户角色
+        boolean success = userService.updateUserRole(currentUserId, roleUpdateDao);
+        
+        if (success) {
+            return ResultUtils.success("用户角色修改成功");
+        } else {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "用户角色修改失败");
         }
     }
 }

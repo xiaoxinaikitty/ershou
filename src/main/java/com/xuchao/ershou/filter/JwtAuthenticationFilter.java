@@ -28,6 +28,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     // 不需要验证的路径
     private static final List<String> WHITELIST = Arrays.asList(
             "/user/login",
+            "/user/register",
+            "/user/admin",
             // 其他不需要验证的路径
             "/error"
     );

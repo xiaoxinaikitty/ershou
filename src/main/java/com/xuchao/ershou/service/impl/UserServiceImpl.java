@@ -4,11 +4,13 @@ import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.mapper.UserMapper;
 import com.xuchao.ershou.model.dao.user.UserAdminDao;
 import com.xuchao.ershou.model.dao.user.UserChangePasswordDao;
+import com.xuchao.ershou.model.dao.user.UserRoleUpdateDao;
 import com.xuchao.ershou.model.dao.user.UserUpdateDao;
 import com.xuchao.ershou.model.entity.User;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.model.dao.user.UserAddressDao;
 import com.xuchao.ershou.model.entity.UserAddress;
+import com.xuchao.ershou.model.vo.UserRoleVO;
 import com.xuchao.ershou.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,11 @@ import java.util.Objects;
 public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper userMapper;
+
+    // 系统管理员角色常量
+    private static final String ADMIN_ROLE = "系统管理员";
+    // 普通用户角色常量
+    private static final String NORMAL_ROLE = "普通用户";
 
     @Override
     public int insertUser(User user) {
@@ -145,5 +152,69 @@ public class UserServiceImpl implements UserService {
         int result = userMapper.updateById(user);
         
         return result > 0;
+    }
+
+    @Override
+    public boolean updateUserRole(Long currentUserId, UserRoleUpdateDao roleUpdateDao) {
+        // 1. 检查当前用户是否是管理员
+        User currentUser = userMapper.selectById(currentUserId);
+        if (currentUser == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "当前用户不存在");
+        }
+        
+        // 仅允许系统管理员修改用户角色
+        if (!ADMIN_ROLE.equals(currentUser.getRole())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "权限不足，仅系统管理员可执行此操作");
+        }
+        
+        // 2. 检查目标用户是否存在
+        Long targetUserId = roleUpdateDao.getTargetUserId();
+        User targetUser = userMapper.selectById(targetUserId);
+        if (targetUser == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "目标用户不存在");
+        }
+        
+        // 3. 设置用户角色（根据请求设置角色，若未指定则默认设为系统管理员）
+        String newRole = roleUpdateDao.getRole();
+        if (!StringUtils.hasText(newRole)) {
+            newRole = ADMIN_ROLE;  // 默认设为系统管理员
+        } else {
+            // 检查角色值是否合法
+            if (!ADMIN_ROLE.equals(newRole) && !NORMAL_ROLE.equals(newRole)) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "无效的角色值，角色只能是'系统管理员'或'普通用户'");
+            }
+        }
+        
+        // 如果当前已经是想要设置的角色，不执行更新操作
+        if (newRole.equals(targetUser.getRole())) {
+            return true;  // 认为设置成功
+        }
+        
+        // 4. 更新用户角色
+        targetUser.setRole(newRole);
+        int result = userMapper.updateById(targetUser);
+        
+        return result > 0;
+    }
+
+    @Override
+    public UserRoleVO getUserRole(Long userId) {
+        // 查询用户信息
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "用户不存在");
+        }
+        
+        // 组装用户角色信息
+        UserRoleVO userRoleVO = new UserRoleVO();
+        userRoleVO.setUserId(user.getUserId());
+        userRoleVO.setUsername(user.getUsername());
+        userRoleVO.setRole(user.getRole());
+        
+        // 判断是否是管理员
+        boolean isAdmin = ADMIN_ROLE.equals(user.getRole());
+        userRoleVO.setIsAdmin(isAdmin);
+        
+        return userRoleVO;
     }
 }

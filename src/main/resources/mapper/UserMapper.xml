@@ -8,7 +8,7 @@
         <result column="phone" property="phone" jdbcType="VARCHAR"/>
         <result column="role" property="role" jdbcType="VARCHAR"/>
         <result column="email" property="email" jdbcType="VARCHAR"/>
-        <result column="avatar_url" property="avatarUrl" jdbcType="VARCHAR"/>
+        <result column="avatar" property="avatar" jdbcType="VARCHAR"/>
         <result column="balance" property="balance" jdbcType="DECIMAL"/>
         <result column="is_locked" property="isLocked" jdbcType="TINYINT"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
@@ -41,7 +41,7 @@
             role,
             phone,
             email,
-            avatar AS avatar_url,
+            avatar,
             balance,
             is_locked,
             create_time
@@ -58,7 +58,7 @@
             role,
             phone,
             email,
-            avatar AS avatar_url,
+            avatar,
             balance,
             is_locked,
             create_time
