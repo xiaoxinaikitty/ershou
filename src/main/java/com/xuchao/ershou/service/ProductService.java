@@ -15,4 +15,11 @@ public interface ProductService {
      * @return 添加的商品信息
      */
     Product addProduct(Long userId, ProductAddDao productAddDao);
+    
+    /**
+     * 根据商品ID查询商品详情
+     * @param productId 商品ID
+     * @return 商品详细信息
+     */
+    Product getProductById(Long productId);
 }

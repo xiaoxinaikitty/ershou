@@ -10,6 +10,8 @@ import com.xuchao.ershou.service.ProductService;
 import com.xuchao.ershou.common.ErrorCode;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,5 +44,17 @@ public class ProductController {
         Product addedProduct = productService.addProduct(currentUserId, productAddDao);
         
         return ResultUtils.success(addedProduct);
+    }
+    
+    /**
+     * 根据ID查询商品详情
+     * @param productId 商品ID
+     * @return 商品详细信息
+     */
+    @GetMapping("/{productId}")
+    public BaseResponse<Product> getProductById(@PathVariable Long productId) {
+        // 调用服务层查询商品
+        Product product = productService.getProductById(productId);
+        return ResultUtils.success(product);
     }
 }

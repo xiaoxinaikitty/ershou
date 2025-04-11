@@ -55,4 +55,26 @@ public class ProductServiceImpl implements ProductService {
         // 返回完整的商品信息（包含自动生成的主键）
         return product;
     }
+    
+    @Override
+    public Product getProductById(Long productId) {
+        // 参数校验
+        if (productId == null || productId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "商品ID无效");
+        }
+        
+        // 根据ID查询商品
+        Product product = productMapper.selectById(productId);
+        
+        // 判断商品是否存在
+        if (product == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "商品不存在");
+        }
+        
+        // 增加浏览次数（可以考虑使用异步方式）
+        product.setViewCount(product.getViewCount() + 1);
+        productMapper.updateById(product);
+        
+        return product;
+    }
 }
