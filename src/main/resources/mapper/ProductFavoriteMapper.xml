@@ -31,4 +31,26 @@
         DELETE FROM product_favorite
         WHERE user_id = #{userId} AND product_id = #{productId}
     </delete>
+    
+    <!-- 查询用户收藏的商品列表 -->
+    <select id="selectFavoriteByUserId" resultType="com.xuchao.ershou.model.vo.ProductFavoriteVO">
+        SELECT 
+            pf.favorite_id as favoriteId,
+            pf.product_id as productId,
+            p.title as productTitle,
+            p.price as productPrice,
+            pi.image_url as productImage,
+            pf.user_id as userId,
+            pf.created_time as createdTime
+        FROM 
+            product_favorite pf
+        LEFT JOIN 
+            product p ON pf.product_id = p.product_id
+        LEFT JOIN 
+            product_image pi ON p.product_id = pi.product_id AND pi.is_main = 1
+        WHERE 
+            pf.user_id = #{userId}
+        ORDER BY 
+            pf.created_time DESC
+    </select>
 </mapper>

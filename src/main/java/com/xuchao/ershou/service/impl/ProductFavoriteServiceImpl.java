@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 商品收藏服务实现类
@@ -89,8 +90,7 @@ public class ProductFavoriteServiceImpl implements ProductFavoriteService {
         
         return favoriteVO;
     }
-    
-    @Override
+      @Override
     @Transactional
     public boolean cancelProductFavorite(Long userId, Long productId) {
         // 参数校验
@@ -118,5 +118,18 @@ public class ProductFavoriteServiceImpl implements ProductFavoriteService {
         int result = productFavoriteMapper.deleteProductFavorite(userId, productId);
         
         return result > 0;
+    }
+    
+    @Override
+    public List<ProductFavoriteVO> getFavoriteList(Long userId) {
+        // 参数校验
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        // 直接调用Mapper查询收藏列表
+        List<ProductFavoriteVO> favoriteList = productFavoriteMapper.selectFavoriteByUserId(userId);
+        
+        return favoriteList;
     }
 }

@@ -12,13 +12,9 @@ import com.xuchao.ershou.service.ProductFavoriteService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * 商品收藏控制器
@@ -72,8 +68,7 @@ public class ProductFavoriteController {
         
         return ResultUtils.success(productFavoriteVO);
     }
-    
-    /**
+      /**
      * 取消收藏商品
      * @param productId 商品ID
      * @param authorization 认证头部(Bearer token)
@@ -115,5 +110,43 @@ public class ProductFavoriteController {
         } else {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "取消收藏失败");
         }
+    }
+    
+    /**
+     * 获取用户收藏的商品列表
+     * @param authorization 认证头部(Bearer token)
+     * @return 收藏商品列表
+     */
+    @GetMapping("/list")
+    public BaseResponse<List<ProductFavoriteVO>> getFavoriteList(
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+            
+        Long userId = null;
+        
+        // 1. 从Authorization头中提取Token
+        if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
+            String token = authorization.substring(7);
+            
+            // 2. 验证Token有效性
+            if (!jwtUtil.validateToken(token)) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "无效的token，请重新登录");
+            }
+            
+            // 3. 从Token中提取用户ID
+            userId = jwtUtil.getUserIdFromToken(token);
+        }
+        
+        // 4. 如果从Token中无法获取用户ID，则尝试从请求上下文中获取
+        if (userId == null) {
+            userId = CurrentUserUtils.getCurrentUserId();
+            if (userId == null) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+            }
+        }
+        
+        // 5. 调用服务层获取收藏列表
+        List<ProductFavoriteVO> favoriteList = productFavoriteService.getFavoriteList(userId);
+        
+        return ResultUtils.success(favoriteList);
     }
 }
