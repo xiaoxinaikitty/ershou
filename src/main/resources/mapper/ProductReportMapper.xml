@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuchao.ershou.mapper.ProductReportMapper">
+    <resultMap id="BaseResultMap" type="com.xuchao.ershou.model.entity.ProductReport">
+        <id column="report_id" property="reportId" jdbcType="BIGINT"/>
+        <result column="product_id" property="productId" jdbcType="BIGINT"/>
+        <result column="user_id" property="userId" jdbcType="BIGINT"/>
+        <result column="report_type" property="reportType" jdbcType="TINYINT"/>
+        <result column="report_content" property="reportContent" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="TINYINT"/>
+        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
+        <result column="handle_time" property="handleTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 检查用户是否已举报商品 -->
+    <select id="checkUserReport" resultType="int">
+        SELECT COUNT(*)
+        FROM product_report
+        WHERE user_id = #{userId} AND product_id = #{productId}
+    </select>
+
+    <!-- 添加商品举报 -->
+    <insert id="insertProductReport" parameterType="com.xuchao.ershou.model.entity.ProductReport" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO product_report (
+            product_id,
+            user_id,
+            report_type,
+            report_content,
+            status,
+            created_time
+        ) VALUES (
+            #{productId},
+            #{userId},
+            #{reportType},
+            #{reportContent},
+            #{status},
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+</mapper>
