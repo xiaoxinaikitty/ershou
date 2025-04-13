@@ -89,4 +89,34 @@ public class ProductFavoriteServiceImpl implements ProductFavoriteService {
         
         return favoriteVO;
     }
+    
+    @Override
+    @Transactional
+    public boolean cancelProductFavorite(Long userId, Long productId) {
+        // 参数校验
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        if (productId == null || productId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "商品ID无效");
+        }
+        
+        // 检查商品是否存在
+        Product product = productMapper.selectProductById(productId);
+        if (product == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "商品不存在");
+        }
+        
+        // 检查是否已收藏
+        int existCount = productFavoriteMapper.checkUserFavorite(userId, productId);
+        if (existCount <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "您尚未收藏该商品");
+        }
+        
+        // 执行取消收藏
+        int result = productFavoriteMapper.deleteProductFavorite(userId, productId);
+        
+        return result > 0;
+    }
 }

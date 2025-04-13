@@ -15,4 +15,13 @@ public interface ProductFavoriteService {
      * @return 收藏结果
      */
     ProductFavoriteVO addProductFavorite(Long userId, ProductFavoriteAddDao productFavoriteAddDao);
+    
+    /**
+     * 取消商品收藏
+     * @param userId 当前登录用户ID
+     * @param productId 商品ID
+     * @return 是否取消成功
+     */
+    boolean cancelProductFavorite(Long userId, Long productId);
 }
+                                                                                

@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -69,5 +71,49 @@ public class ProductFavoriteController {
         ProductFavoriteVO productFavoriteVO = productFavoriteService.addProductFavorite(userId, productFavoriteAddDao);
         
         return ResultUtils.success(productFavoriteVO);
+    }
+    
+    /**
+     * 取消收藏商品
+     * @param productId 商品ID
+     * @param authorization 认证头部(Bearer token)
+     * @return 取消收藏结果
+     */
+    @DeleteMapping("/{productId}")
+    public BaseResponse<String> cancelProductFavorite(
+            @PathVariable Long productId,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+            
+        Long userId = null;
+        
+        // 1. 从Authorization头中提取Token
+        if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
+            String token = authorization.substring(7);
+            
+            // 2. 验证Token有效性
+            if (!jwtUtil.validateToken(token)) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "无效的token，请重新登录");
+            }
+            
+            // 3. 从Token中提取用户ID
+            userId = jwtUtil.getUserIdFromToken(token);
+        }
+        
+        // 4. 如果从Token中无法获取用户ID，则尝试从请求上下文中获取
+        if (userId == null) {
+            userId = CurrentUserUtils.getCurrentUserId();
+            if (userId == null) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+            }
+        }
+        
+        // 5. 调用服务层取消收藏商品
+        boolean result = productFavoriteService.cancelProductFavorite(userId, productId);
+        
+        if (result) {
+            return ResultUtils.success("取消收藏成功");
+        } else {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "取消收藏失败");
+        }
     }
 }

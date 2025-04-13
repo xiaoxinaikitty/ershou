@@ -23,4 +23,12 @@ public interface ProductFavoriteMapper extends BaseMapper<ProductFavorite> {
      * @return 影响的行数
      */
     int insertProductFavorite(ProductFavorite productFavorite);
+    
+    /**
+     * 取消商品收藏
+     * @param userId 用户ID
+     * @param productId 商品ID
+     * @return 影响的行数
+     */
+    int deleteProductFavorite(@Param("userId") Long userId, @Param("productId") Long productId);
 }

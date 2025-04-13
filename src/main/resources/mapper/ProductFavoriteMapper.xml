@@ -13,9 +13,7 @@
         SELECT COUNT(*)
         FROM product_favorite
         WHERE user_id = #{userId} AND product_id = #{productId}
-    </select>
-
-    <!-- 添加商品收藏 -->
+    </select>    <!-- 添加商品收藏 -->
     <insert id="insertProductFavorite" parameterType="com.xuchao.ershou.model.entity.ProductFavorite" useGeneratedKeys="true" keyProperty="favoriteId">
         INSERT INTO product_favorite (
             product_id,
@@ -27,4 +25,10 @@
             CURRENT_TIMESTAMP
         )
     </insert>
+    
+    <!-- 取消商品收藏 -->
+    <delete id="deleteProductFavorite">
+        DELETE FROM product_favorite
+        WHERE user_id = #{userId} AND product_id = #{productId}
+    </delete>
 </mapper>
