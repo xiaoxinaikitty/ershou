@@ -1,5 +1,6 @@
 package com.xuchao.ershou.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.xuchao.ershou.common.ErrorCode;
 import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.mapper.ProductImageMapper;
@@ -71,5 +72,52 @@ public class ProductImageServiceImpl implements ProductImageService {
         BeanUtils.copyProperties(productImage, productImageVO);
         
         return productImageVO;
+    }
+    
+    @Override
+    @Transactional
+    public boolean deleteProductImage(Long userId, Long productId, Long imageId) {
+        // 参数校验
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        if (productId == null || productId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "商品ID无效");
+        }
+        
+        if (imageId == null || imageId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片ID无效");
+        }
+        
+        // 查询商品是否存在
+        Product product = productMapper.selectProductById(productId);
+        if (product == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "商品不存在");
+        }
+        
+        // 校验当前用户是否为商品发布者
+        if (!product.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "无权限删除他人发布的商品图片");
+        }
+        
+        // 查询图片是否存在
+        QueryWrapper<ProductImage> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("image_id", imageId).eq("product_id", productId);
+        ProductImage productImage = productImageMapper.selectOne(queryWrapper);
+        
+        if (productImage == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "图片不存在或不属于该商品");
+        }
+        
+        // 执行删除
+        int result = productImageMapper.deleteById(imageId);
+        
+        // 如果删除的是主图，需要重新设置一个主图
+        if (productImage.getIsMain() != null && productImage.getIsMain() == 1) {
+            productImageMapper.setNewMainImage(productId);
+        }
+        
+        return result > 0;
     }
 }

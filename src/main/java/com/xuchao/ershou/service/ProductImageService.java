@@ -16,4 +16,13 @@ public interface ProductImageService {
      * @return 添加的商品图片信息
      */
     ProductImageVO addProductImage(Long userId, ProductImageAddDao productImageAddDao);
+    
+    /**
+     * 删除商品图片
+     * @param userId 当前登录用户ID
+     * @param productId 商品ID
+     * @param imageId 图片ID
+     * @return 是否删除成功
+     */
+    boolean deleteProductImage(Long userId, Long productId, Long imageId);
 }

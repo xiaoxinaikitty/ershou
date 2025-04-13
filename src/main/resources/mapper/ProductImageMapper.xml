@@ -25,10 +25,23 @@
             CURRENT_TIMESTAMP
         )
     </insert>
-    
-    <update id="updateOtherImagesNonMain">
+      <update id="updateOtherImagesNonMain">
         UPDATE product_image 
         SET is_main = 0
         WHERE product_id = #{productId} 
+    </update>
+    
+    <update id="setNewMainImage">
+        UPDATE product_image 
+        SET is_main = 1
+        WHERE product_id = #{productId} 
+        AND image_id = (
+            SELECT min_id FROM (
+                SELECT MIN(image_id) as min_id 
+                FROM product_image 
+                WHERE product_id = #{productId}
+            ) as t
+        )
+        LIMIT 1
     </update>
 </mapper>

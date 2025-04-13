@@ -22,4 +22,11 @@ public interface ProductImageMapper extends BaseMapper<ProductImage> {
      * @return 影响的行数
      */
     int updateOtherImagesNonMain(@Param("productId") Long productId);
+    
+    /**
+     * 将商品的第一张图片设置为主图（在删除主图后使用）
+     * @param productId 商品ID
+     * @return 影响的行数
+     */
+    int setNewMainImage(@Param("productId") Long productId);
 }
