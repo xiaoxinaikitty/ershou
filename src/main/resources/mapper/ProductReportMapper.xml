@@ -17,9 +17,7 @@
         SELECT COUNT(*)
         FROM product_report
         WHERE user_id = #{userId} AND product_id = #{productId}
-    </select>
-
-    <!-- 添加商品举报 -->
+    </select>    <!-- 添加商品举报 -->
     <insert id="insertProductReport" parameterType="com.xuchao.ershou.model.entity.ProductReport" useGeneratedKeys="true" keyProperty="reportId">
         INSERT INTO product_report (
             product_id,
@@ -37,4 +35,25 @@
             CURRENT_TIMESTAMP
         )
     </insert>
+    
+    <!-- 查询指定商品的举报信息列表 -->
+    <select id="selectReportsByProductId" resultType="com.xuchao.ershou.model.vo.ProductReportVO">
+        SELECT 
+            pr.report_id as reportId,
+            pr.product_id as productId,
+            p.title as productTitle,
+            pr.user_id as userId,
+            pr.report_type as reportType,
+            pr.report_content as reportContent,
+            pr.status as status,
+            pr.created_time as createdTime
+        FROM 
+            product_report pr
+        LEFT JOIN 
+            product p ON pr.product_id = p.product_id
+        WHERE 
+            pr.product_id = #{productId}
+        ORDER BY 
+            pr.created_time DESC
+    </select>
 </mapper>

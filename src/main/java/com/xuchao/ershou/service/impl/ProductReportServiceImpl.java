@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * 商品举报服务实现类
  */
@@ -25,8 +27,7 @@ public class ProductReportServiceImpl implements ProductReportService {
     
     @Autowired
     private ProductMapper productMapper;
-    
-    @Override
+      @Override
     @Transactional
     public ProductReportVO addProductReport(Long userId, ProductReportAddDao productReportAddDao) {
         // 参数校验
@@ -80,5 +81,24 @@ public class ProductReportServiceImpl implements ProductReportService {
         reportVO.setProductTitle(product.getTitle());
         
         return reportVO;
+    }
+    
+    @Override
+    public List<ProductReportVO> getProductReports(Long productId) {
+        // 参数校验
+        if (productId == null || productId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "商品ID无效");
+        }
+        
+        // 检查商品是否存在
+        Product product = productMapper.selectProductById(productId);
+        if (product == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "商品不存在");
+        }
+        
+        // 查询举报信息列表
+        List<ProductReportVO> reportVOList = productReportMapper.selectReportsByProductId(productId);
+        
+        return reportVOList;
     }
 }
