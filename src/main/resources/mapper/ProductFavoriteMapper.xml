@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuchao.ershou.mapper.ProductFavoriteMapper">
+    <resultMap id="BaseResultMap" type="com.xuchao.ershou.model.entity.ProductFavorite">
+        <id column="favorite_id" property="favoriteId" jdbcType="BIGINT"/>
+        <result column="product_id" property="productId" jdbcType="BIGINT"/>
+        <result column="user_id" property="userId" jdbcType="BIGINT"/>
+        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!-- 检查用户是否已收藏商品 -->
+    <select id="checkUserFavorite" resultType="int">
+        SELECT COUNT(*)
+        FROM product_favorite
+        WHERE user_id = #{userId} AND product_id = #{productId}
+    </select>
+
+    <!-- 添加商品收藏 -->
+    <insert id="insertProductFavorite" parameterType="com.xuchao.ershou.model.entity.ProductFavorite" useGeneratedKeys="true" keyProperty="favoriteId">
+        INSERT INTO product_favorite (
+            product_id,
+            user_id,
+            created_time
+        ) VALUES (
+            #{productId},
+            #{userId},
+            CURRENT_TIMESTAMP
+        )
+    </insert>
+</mapper>
