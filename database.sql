@@ -92,3 +92,12 @@ CREATE TABLE product_report (
     handle_time DATETIME COMMENT '处理时间',
     INDEX idx_product (product_id)
 ) COMMENT '商品举报表';
+
+-- 交易方式表（多选回收方式）
+-- ----------------------------
+CREATE TABLE `recycle_method` (
+  `method_id` tinyint unsigned NOT NULL AUTO_INCREMENT COMMENT '方式ID',
+  `method_name` varchar(20) NOT NULL COMMENT '方式名称（如：上门回收）',
+  `method_desc` varchar(255) NOT NULL COMMENT '方式描述',
+  PRIMARY KEY (`method_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='回收方式表';

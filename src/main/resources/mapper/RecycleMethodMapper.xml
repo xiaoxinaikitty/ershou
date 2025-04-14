@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuchao.ershou.mapper.RecycleMethodMapper">
+    
+    <!-- 检查方式名称是否已存在 -->
+    <select id="checkMethodNameExists" resultType="int">
+        SELECT COUNT(*)
+        FROM recycle_method
+        WHERE method_name = #{methodName}
+    </select>
+    
+    <!-- 插入交易方式 -->
+    <insert id="insertRecycleMethod" parameterType="com.xuchao.ershou.model.entity.RecycleMethod" 
+            useGeneratedKeys="true" keyProperty="methodId">
+        INSERT INTO recycle_method (method_name, method_desc)
+        VALUES (#{methodName}, #{methodDesc})
+    </insert>
+    
+</mapper>
