@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuchao.ershou.mapper.OrderStatusHistoryMapper">
+    
+    <!-- 插入订单状态历史 -->
+    <insert id="insertOrderStatusHistory" parameterType="com.xuchao.ershou.model.entity.OrderStatusHistory" 
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO order_status_history (
+            order_id, previous_status, current_status, 
+            operator_id, operator_type, remark
+        ) VALUES (
+            #{orderId}, #{previousStatus}, #{currentStatus}, 
+            #{operatorId}, #{operatorType}, #{remark}
+        )
+    </insert>
+    
+</mapper>

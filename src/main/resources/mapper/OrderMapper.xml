@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuchao.ershou.mapper.OrderMapper">
+    
+    <!-- 插入订单 -->
+    <insert id="insertOrder" parameterType="com.xuchao.ershou.model.entity.Order" 
+            useGeneratedKeys="true" keyProperty="orderId">
+        INSERT INTO `order` (
+            order_no, user_id, seller_id, product_id, order_amount, 
+            payment_amount, order_status, payment_type, delivery_type, 
+            delivery_fee, remark
+        ) VALUES (
+            #{orderNo}, #{userId}, #{sellerId}, #{productId}, #{orderAmount}, 
+            #{paymentAmount}, #{orderStatus}, #{paymentType}, #{deliveryType}, 
+            #{deliveryFee}, #{remark}
+        )
+    </insert>
+    
+    <!-- 根据订单ID查询订单详情 -->
+    <select id="selectOrderById" resultType="com.xuchao.ershou.model.entity.Order">
+        SELECT * FROM `order` WHERE order_id = #{orderId}
+    </select>
+    
+</mapper>
