@@ -23,7 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 订单服务实现类
@@ -150,6 +152,28 @@ public class OrderServiceImpl implements OrderService {
         orderVO.setAddress(addressVO);
         
         return orderVO;
+    }
+    
+    @Override
+    public List<OrderVO> getOrderList(Long userId) {
+        // 查询用户的订单列表
+        List<Order> orders = orderMapper.selectOrdersByUserId(userId);
+
+        // 转换为视图对象
+        return orders.stream().map(order -> {
+            OrderVO orderVO = new OrderVO();
+            BeanUtils.copyProperties(order, orderVO);
+
+            // 查询并设置订单地址
+            OrderAddress orderAddress = orderAddressMapper.selectByOrderId(order.getOrderId());
+            if (orderAddress != null) {
+                OrderAddressVO addressVO = new OrderAddressVO();
+                BeanUtils.copyProperties(orderAddress, addressVO);
+                orderVO.setAddress(addressVO);
+            }
+
+            return orderVO;
+        }).collect(Collectors.toList());
     }
     
     /**

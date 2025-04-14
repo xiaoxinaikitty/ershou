@@ -21,4 +21,9 @@
         SELECT * FROM `order` WHERE order_id = #{orderId}
     </select>
     
+    <!-- 根据用户ID查询订单列表 -->
+    <select id="selectOrdersByUserId" resultType="com.xuchao.ershou.model.entity.Order">
+        SELECT * FROM `order` WHERE user_id = #{userId}
+    </select>
+    
 </mapper>

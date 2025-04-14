@@ -3,6 +3,7 @@ package com.xuchao.ershou.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xuchao.ershou.model.entity.Order;
 import org.apache.ibatis.annotations.Param;
+import java.util.List;
 
 /**
  * 订单Mapper接口
@@ -22,4 +23,11 @@ public interface OrderMapper extends BaseMapper<Order> {
      * @return 订单信息
      */
     Order selectOrderById(@Param("orderId") Long orderId);
+
+    /**
+     * 根据用户ID查询订单列表
+     * @param userId 用户ID
+     * @return 订单列表
+     */
+    List<Order> selectOrdersByUserId(@Param("userId") Long userId);
 }

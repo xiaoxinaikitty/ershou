@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 订单控制器
  */
@@ -65,5 +67,43 @@ public class OrderController {
         OrderVO orderVO = orderService.createOrder(userId, orderCreateDao);
         
         return ResultUtils.success(orderVO);
+    }
+
+    /**
+     * 获取订单列表
+     * @param authorization 认证头部(Bearer token)
+     * @return 用户的订单列表
+     */
+    @GetMapping("/list")
+    public BaseResponse<List<OrderVO>> getOrderList(
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+
+        Long userId = null;
+
+        // 1. 从Authorization头中提取Token
+        if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
+            String token = authorization.substring(7);
+
+            // 2. 验证Token有效性
+            if (!jwtUtil.validateToken(token)) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "无效的token，请重新登录");
+            }
+
+            // 3. 从Token中提取用户ID
+            userId = jwtUtil.getUserIdFromToken(token);
+        }
+
+        // 4. 如果从Token中无法获取用户ID，则尝试从请求上下文中获取
+        if (userId == null) {
+            userId = CurrentUserUtils.getCurrentUserId();
+            if (userId == null) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+            }
+        }
+
+        // 5. 调用服务层获取订单列表
+        List<OrderVO> orderList = orderService.getOrderList(userId);
+
+        return ResultUtils.success(orderList);
     }
 }
