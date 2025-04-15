@@ -8,6 +8,8 @@ import com.xuchao.ershou.common.JwtUtil;
 import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.model.dao.order.OrderCancelDao;
 import com.xuchao.ershou.model.dao.order.OrderCreateDao;
+import com.xuchao.ershou.model.dto.OrderConfirmReceiptRequest;
+import com.xuchao.ershou.model.dto.OrderNotifyShipmentRequest;
 import com.xuchao.ershou.model.dto.OrderPayRequest;
 import com.xuchao.ershou.model.vo.OrderVO;
 import com.xuchao.ershou.service.OrderService;
@@ -164,5 +166,37 @@ public class OrderController {
         }
         
         return ResultUtils.success(orderService.payOrder(request));
+    }
+
+    @PutMapping("/confirm-receipt")
+    public BaseResponse<OrderVO> confirmReceipt(@RequestBody OrderConfirmReceiptRequest request, HttpServletRequest httpServletRequest) {
+        String token = httpServletRequest.getHeader("Authorization");
+        if (token == null || !token.startsWith("Bearer ")) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        
+        // 验证当前用户
+        Long currentUserId = jwtUtil.getUserIdFromToken(token.substring(7));
+        if (!currentUserId.equals(request.getUserId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        
+        return ResultUtils.success(orderService.confirmReceipt(request));
+    }
+
+    @PutMapping("/notify-shipment")
+    public BaseResponse<OrderVO> notifyShipment(@RequestBody OrderNotifyShipmentRequest request, HttpServletRequest httpServletRequest) {
+        String token = httpServletRequest.getHeader("Authorization");
+        if (token == null || !token.startsWith("Bearer ")) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        
+        // 验证当前用户
+        Long currentUserId = jwtUtil.getUserIdFromToken(token.substring(7));
+        if (!currentUserId.equals(request.getSellerId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        
+        return ResultUtils.success(orderService.notifyShipment(request));
     }
 }

@@ -53,9 +53,9 @@
             <p>请求数据示例：</p>
             <pre>
 {
-    "username": "zhangsan",
-    "password": "password123",
+    "username": "张三",
     "phone": "13800138000",
+    "password": "password123",
     "email": "zhangsan@example.com"
 }
             </pre>
@@ -76,7 +76,7 @@
             <p>请求数据示例：</p>
             <pre>
 {
-    "username": "zhangsan",
+    "username": "张三",
     "password": "password123"
 }
             </pre>
@@ -121,11 +121,12 @@
             <p>请求数据示例：</p>
             <pre>
 {
-    "userId": "1",
-    "consignee": "张三",
-    "region": "北京市海淀区",
-    "detail": "中关村大街1号",
-    "contactPhone": "13800138000",
+    "name": "张三",
+    "phone": "13800138000",
+    "province": "北京市",
+    "city": "北京市",
+    "district": "海淀区",
+    "detailAddress": "中关村南大街5号",
     "isDefault": true
 }
             </pre>
@@ -143,10 +144,6 @@
             <h3>获取用户信息</h3>
             <p>请求路径：/user/info</p>
             <p>请求方法：GET</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>响应示例：</p>
             <pre>
 {
@@ -168,14 +165,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <h3>修改用户信息</h3>
             <p>请求路径：/user/info</p>
             <p>请求方法：PUT</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>请求数据示例：</p>
             <pre>
 {
-    "phone": "13900139000",
+    "username": "张三",
+    "phone": "13800138000",
     "email": "zhangsan_new@example.com",
     "avatar": "new_avatar.jpg"
 }
@@ -200,16 +194,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <h3>修改用户密码</h3>
             <p>请求路径：/user/password</p>
             <p>请求方法：PUT</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>请求数据示例：</p>
             <pre>
 {
     "oldPassword": "password123",
-    "newPassword": "newpassword123",
-    "confirmPassword": "newpassword123"
+    "newPassword": "newPassword456"
 }
             </pre>
             <p>响应示例：</p>
@@ -226,10 +215,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <h3>获取用户角色信息</h3>
             <p>请求路径：/user/role</p>
             <p>请求方法：GET</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>响应示例：</p>
             <pre>
 {
@@ -253,10 +238,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <h3>添加商品</h3>
             <p>请求路径：/product/add</p>
             <p>请求方法：POST</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>请求数据示例：</p>
             <pre>
 {
@@ -266,6 +247,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
     "originalPrice": 5999.00,
     "categoryId": 1,
     "conditionLevel": 9,
+    "status": 1,
     "location": "北京市"
 }
             </pre>
@@ -319,16 +301,14 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <h3>更新商品信息</h3>
             <p>请求路径：/product/update</p>
             <p>请求方法：PUT</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>请求数据示例：</p>
             <pre>
 {
     "productId": 1,
     "title": "iPhone 12 Pro",
-    "price": 4999.00
+    "price": 4999.00,
+    "status": 1,
+    "description": "95新iPhone12 Pro，国行正品"
 }
             </pre>
             <p>响应示例：</p>
@@ -350,10 +330,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <h3>删除商品</h3>
             <p>请求路径：/product/delete/{productId}</p>
             <p>请求方法：DELETE</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>响应示例：</p>
             <pre>
 {
@@ -373,14 +349,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <h3>收藏商品</h3>
             <p>请求路径：/product/favorite/add</p>
             <p>请求方法：POST</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>请求数据示例：</p>
             <pre>
 {
-    "productId": 1
+    "productId": 1,
+    "userId": 1
 }
             </pre>
             <p>响应示例：</p>
@@ -402,10 +375,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <h3>取消收藏商品</h3>
             <p>请求路径：/product/favorite/{productId}</p>
             <p>请求方法：DELETE</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>响应示例：</p>
             <pre>
 {
@@ -420,10 +389,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <h3>获取收藏列表</h3>
             <p>请求路径：/product/favorite/list</p>
             <p>请求方法：GET</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>响应示例：</p>
             <pre>
 {
@@ -451,10 +416,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <h3>添加商品图片</h3>
             <p>请求路径：/product/image/add</p>
             <p>请求方法：POST</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>请求数据示例：</p>
             <pre>
 {
@@ -484,10 +445,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <h3>删除商品图片</h3>
             <p>请求路径：/product/image/{productId}/{imageId}</p>
             <p>请求方法：DELETE</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>响应示例：</p>
             <pre>
 {
@@ -507,14 +464,11 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <h3>举报商品</h3>
             <p>请求路径：/product/report/add</p>
             <p>请求方法：POST</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>请求数据示例：</p>
             <pre>
 {
     "productId": 1,
+    "userId": 1,
     "reportType": 1,
     "reportContent": "商品涉嫌虚假宣传"
 }
@@ -540,10 +494,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <h3>获取商品举报列表</h3>
             <p>请求路径：/product/report/list/{productId}</p>
             <p>请求方法：GET</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>响应示例：</p>
             <pre>
 {
@@ -572,10 +522,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <h3>添加交易方式</h3>
             <p>请求路径：/product/trade/method/add</p>
             <p>请求方法：POST</p>
-            <p>请求头：</p>
-            <pre>
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
-            </pre>
             <p>请求数据示例：</p>
             <pre>
 {
@@ -598,8 +544,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
         </div>
     </div>
 
-    <!-- 订单模块 -->
-    <div class="api-section">
+     <!-- 订单模块 -->
+     <div class="api-section">
         <h2>订单模块</h2>
 
         <div class="api-item">
@@ -719,7 +665,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             <pre>
 {
     "orderId": 1,
-    "remark": "商品不符合预期，取消订单"
+    "remark": "商品不符合预期，申请取消"
 }
             </pre>
             <p>响应示例：</p>
@@ -755,7 +701,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             </pre>
         </div>
 
-        // ... existing code ...
         <div class="api-item">
             <h3>支付订单</h3>
             <p>请求路径：/order/pay</p>
@@ -809,6 +754,151 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
 }
             </pre>
         </div>
+
+        <div class="api-item">
+            <h3>通知收货（发货）</h3>
+            <p>请求路径：/order/notify-shipment</p>
+            <p>请求方法：PUT</p>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+            </pre>
+            <p>请求数据示例：</p>
+            <pre>
+{
+    "orderId": 1,
+    "sellerId": 2
+}
+            </pre>
+            <p>响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "orderId": 1,
+        "orderNo": "202504141528120123456",
+        "userId": 1,
+        "sellerId": 2,
+        "productId": 3,
+        "productTitle": "iPhone 12",
+        "orderAmount": 3999.00,
+        "paymentAmount": 3999.00,
+        "orderStatus": 2,
+        "paymentType": 1,
+        "paymentTime": "2025-04-14 15:28:12",
+        "deliveryType": 2,
+        "deliveryFee": 15.00,
+        "deliveryTime": "2025-04-15 09:30:45",
+        "remark": "希望尽快发货",
+        "createdTime": "2025-04-14 15:28:12",
+        "address": {
+            "receiverName": "张三",
+            "receiverPhone": "13800138000",
+            "province": "北京市",
+            "city": "北京市",
+            "district": "海淀区",
+            "detailAddress": "中关村大街1号"
+        }
+    },
+    "message": "success"
+}
+            </pre>
+        </div>
+
+        <div class="api-item">
+            <h3>确认收货</h3>
+            <p>请求路径：/order/confirm-receipt</p>
+            <p>请求方法：PUT</p>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+            </pre>
+            <p>请求数据示例：</p>
+            <pre>
+{
+    "orderId": 1,
+    "userId": 1
+}
+            </pre>
+            <p>响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "orderId": 1,
+        "orderNo": "202504141528120123456",
+        "userId": 1,
+        "sellerId": 2,
+        "productId": 3,
+        "productTitle": "iPhone 12",
+        "orderAmount": 3999.00,
+        "paymentAmount": 3999.00,
+        "orderStatus": 3,
+        "paymentType": 1,
+        "paymentTime": "2025-04-14 15:28:12",
+        "deliveryType": 2,
+        "deliveryFee": 15.00,
+        "receivedTime": "2025-04-16 10:30:22",
+        "remark": "希望尽快发货",
+        "createdTime": "2025-04-14 15:28:12",
+        "address": {
+            "receiverName": "张三",
+            "receiverPhone": "13800138000",
+            "province": "北京市",
+            "city": "北京市",
+            "district": "海淀区",
+            "detailAddress": "中关村大街1号"
+        }
+    },
+    "message": "success"
+}
+            </pre>
+        </div>
+
+        <div class="api-item">
+            <h3>订单评价</h3>
+            <p>请求路径：/order/review/add</p>
+            <p>请求方法：POST</p>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+            </pre>
+            <p>请求数据示例：</p>
+            <pre>
+{
+    "orderId": 1,
+    "productId": 3,
+    "userId": 1,
+    "sellerId": 2,
+    "content": "商品质量很好，物流速度快，卖家服务态度很好",
+    "rating": 5,
+    "isAnonymous": 0
+}
+            </pre>
+            <p>响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "reviewId": 1,
+        "orderId": 1,
+        "productId": 3,
+        "productTitle": "iPhone 12",
+        "userId": 1,
+        "username": "张三",
+        "sellerId": 2,
+        "sellerName": "李四",
+        "content": "商品质量很好，物流速度快，卖家服务态度很好",
+        "rating": 5,
+        "isAnonymous": 0,
+        "hasReply": 0,
+        "createdTime": "2025-04-16 15:30:22"
+    },
+    "message": "success"
+}
+            </pre>
+        </div>
+        
     </div>
 
 </body>

@@ -2,6 +2,8 @@ package com.xuchao.ershou.service;
 
 import com.xuchao.ershou.model.dao.order.OrderCancelDao;
 import com.xuchao.ershou.model.dao.order.OrderCreateDao;
+import com.xuchao.ershou.model.dto.OrderConfirmReceiptRequest;
+import com.xuchao.ershou.model.dto.OrderNotifyShipmentRequest;
 import com.xuchao.ershou.model.dto.OrderPayRequest;
 import com.xuchao.ershou.model.vo.OrderVO;
 import java.util.List;
@@ -40,4 +42,18 @@ public interface OrderService {
      * @return 订单信息
      */
     OrderVO payOrder(OrderPayRequest request);
+    
+    /**
+     * 确认收货
+     * @param request 确认收货请求
+     * @return 更新后的订单信息
+     */
+    OrderVO confirmReceipt(OrderConfirmReceiptRequest request);
+    
+    /**
+     * 通知收货（卖家发货）
+     * @param request 通知收货请求
+     * @return 更新后的订单信息
+     */
+    OrderVO notifyShipment(OrderNotifyShipmentRequest request);
 }

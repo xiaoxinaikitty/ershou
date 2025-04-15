@@ -5,6 +5,8 @@ import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.mapper.*;
 import com.xuchao.ershou.model.dao.order.OrderCreateDao;
 import com.xuchao.ershou.model.dao.order.OrderCancelDao;
+import com.xuchao.ershou.model.dto.OrderConfirmReceiptRequest;
+import com.xuchao.ershou.model.dto.OrderNotifyShipmentRequest;
 import com.xuchao.ershou.model.dto.OrderPayRequest;
 import com.xuchao.ershou.model.entity.*;
 import com.xuchao.ershou.model.vo.OrderAddressVO;
@@ -324,6 +326,94 @@ public class OrderServiceImpl implements OrderService {
         transactionRecordMapper.insertTransactionRecord(transaction);
         
         // 8. 返回更新后的订单信息
+        return convertOrderToVO(order);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public OrderVO confirmReceipt(OrderConfirmReceiptRequest request) {
+        // 1. 参数校验
+        if (request == null || request.getOrderId() == null || request.getUserId() == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        
+        // 2. 获取订单信息
+        Order order = orderMapper.selectOrderById(request.getOrderId());
+        if (order == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "订单不存在");
+        }
+        
+        // 3. 验证订单状态
+        if (order.getOrderStatus() != 2) { // 只有待收货状态的订单可以确认收货
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "当前订单状态无法确认收货");
+        }
+        
+        // 4. 验证订单所属用户
+        if (!order.getUserId().equals(request.getUserId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        
+        // 5. 更新订单状态
+        Integer previousStatus = order.getOrderStatus();
+        order.setOrderStatus(3); // 更新为已完成状态
+        order.setReceivedTime(LocalDateTime.now());
+        orderMapper.updateOrder(order);
+        
+        // 6. 记录订单状态变更
+        OrderStatusHistory statusHistory = new OrderStatusHistory();
+        statusHistory.setOrderId(order.getOrderId());
+        statusHistory.setPreviousStatus(previousStatus);
+        statusHistory.setCurrentStatus(3);
+        statusHistory.setOperatorId(request.getUserId());
+        statusHistory.setOperatorType(1); // 买家操作
+        statusHistory.setRemark("买家确认收货");
+        orderStatusHistoryMapper.insertOrderStatusHistory(statusHistory);
+        
+        // 7. 返回更新后的订单信息
+        return convertOrderToVO(order);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public OrderVO notifyShipment(OrderNotifyShipmentRequest request) {
+        // 1. 参数校验
+        if (request == null || request.getOrderId() == null || request.getSellerId() == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        
+        // 2. 获取订单信息
+        Order order = orderMapper.selectOrderById(request.getOrderId());
+        if (order == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "订单不存在");
+        }
+        
+        // 3. 验证订单状态
+        if (order.getOrderStatus() != 1) { // 只有待发货状态的订单可以通知收货
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "当前订单状态无法发货");
+        }
+        
+        // 4. 验证卖家权限
+        if (!order.getSellerId().equals(request.getSellerId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权操作此订单");
+        }
+        
+        // 5. 更新订单状态
+        Integer previousStatus = order.getOrderStatus();
+        order.setOrderStatus(2); // 更新为待收货状态
+        order.setDeliveryTime(LocalDateTime.now());
+        orderMapper.updateOrder(order);
+        
+        // 6. 记录订单状态变更
+        OrderStatusHistory statusHistory = new OrderStatusHistory();
+        statusHistory.setOrderId(order.getOrderId());
+        statusHistory.setPreviousStatus(previousStatus);
+        statusHistory.setCurrentStatus(2);
+        statusHistory.setOperatorId(request.getSellerId());
+        statusHistory.setOperatorType(2); // 卖家操作
+        statusHistory.setRemark("卖家已发货");
+        orderStatusHistoryMapper.insertOrderStatusHistory(statusHistory);
+        
+        // 7. 返回更新后的订单信息
         return convertOrderToVO(order);
     }
 
