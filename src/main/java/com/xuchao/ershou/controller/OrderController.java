@@ -8,8 +8,10 @@ import com.xuchao.ershou.common.JwtUtil;
 import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.model.dao.order.OrderCancelDao;
 import com.xuchao.ershou.model.dao.order.OrderCreateDao;
+import com.xuchao.ershou.model.dto.OrderPayRequest;
 import com.xuchao.ershou.model.vo.OrderVO;
 import com.xuchao.ershou.service.OrderService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
@@ -146,5 +148,21 @@ public class OrderController {
         OrderVO orderVO = orderService.cancelOrder(userId, orderCancelDao);
         
         return ResultUtils.success(orderVO);
+    }
+
+    @PutMapping("/pay")
+    public BaseResponse<OrderVO> payOrder(@RequestBody OrderPayRequest request, HttpServletRequest httpServletRequest) {
+        String token = httpServletRequest.getHeader("Authorization");
+        if (token == null || !token.startsWith("Bearer ")) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        
+        // 验证当前用户
+        Long currentUserId = jwtUtil.getUserIdFromToken(token.substring(7));
+        if (!currentUserId.equals(request.getUserId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        
+        return ResultUtils.success(orderService.payOrder(request));
     }
 }

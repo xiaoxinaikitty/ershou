@@ -2,18 +2,11 @@ package com.xuchao.ershou.service.impl;
 
 import com.xuchao.ershou.common.ErrorCode;
 import com.xuchao.ershou.exception.BusinessException;
-import com.xuchao.ershou.mapper.OrderAddressMapper;
-import com.xuchao.ershou.mapper.OrderMapper;
-import com.xuchao.ershou.mapper.OrderStatusHistoryMapper;
-import com.xuchao.ershou.mapper.ProductMapper;
-import com.xuchao.ershou.mapper.UserMapper;
+import com.xuchao.ershou.mapper.*;
 import com.xuchao.ershou.model.dao.order.OrderCreateDao;
 import com.xuchao.ershou.model.dao.order.OrderCancelDao;
-import com.xuchao.ershou.model.entity.Order;
-import com.xuchao.ershou.model.entity.OrderAddress;
-import com.xuchao.ershou.model.entity.OrderStatusHistory;
-import com.xuchao.ershou.model.entity.Product;
-import com.xuchao.ershou.model.entity.User;
+import com.xuchao.ershou.model.dto.OrderPayRequest;
+import com.xuchao.ershou.model.entity.*;
 import com.xuchao.ershou.model.vo.OrderAddressVO;
 import com.xuchao.ershou.model.vo.OrderVO;
 import com.xuchao.ershou.service.OrderService;
@@ -24,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -48,6 +42,9 @@ public class OrderServiceImpl implements OrderService {
     
     @Autowired
     private UserMapper userMapper;
+    
+    @Autowired
+    private TransactionRecordMapper transactionRecordMapper;
     
     @Override
     @Transactional
@@ -262,6 +259,88 @@ public class OrderServiceImpl implements OrderService {
         }
         
         // 查询并设置订单地址
+        OrderAddress orderAddress = orderAddressMapper.selectByOrderId(order.getOrderId());
+        if (orderAddress != null) {
+            OrderAddressVO addressVO = new OrderAddressVO();
+            BeanUtils.copyProperties(orderAddress, addressVO);
+            orderVO.setAddress(addressVO);
+        }
+        
+        return orderVO;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public OrderVO payOrder(OrderPayRequest request) {
+        // 1. 参数校验
+        if (request == null || request.getOrderId() == null || request.getUserId() == null 
+                || request.getPaymentType() == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        
+        // 2. 获取订单信息
+        Order order = orderMapper.selectOrderById(request.getOrderId());
+        if (order == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "订单不存在");
+        }
+        
+        // 3. 验证订单状态
+        if (order.getOrderStatus() != 0) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "订单状态错误");
+        }
+        
+        // 4. 验证订单所属用户
+        if (!order.getUserId().equals(request.getUserId())) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        }
+        
+        // 5. 更新订单状态
+        order.setOrderStatus(1); // 更新为待发货状态
+        order.setPaymentType(request.getPaymentType());
+        order.setPaymentTime(LocalDateTime.now());
+        orderMapper.updateOrder(order);
+        
+        // 6. 记录订单状态变更
+        OrderStatusHistory statusHistory = new OrderStatusHistory();
+        statusHistory.setOrderId(order.getOrderId());
+        statusHistory.setPreviousStatus(0);
+        statusHistory.setCurrentStatus(1);
+        statusHistory.setOperatorId(request.getUserId());
+        statusHistory.setOperatorType(1);
+        statusHistory.setRemark("用户完成支付");
+        orderStatusHistoryMapper.insertOrderStatusHistory(statusHistory);
+        
+        // 7. 记录交易流水
+        TransactionRecord transaction = new TransactionRecord();
+        transaction.setOrderId(order.getOrderId());
+        transaction.setUserId(request.getUserId());
+        transaction.setTransactionType(1);
+        transaction.setTransactionNo(request.getTransactionNo());
+        transaction.setAmount(order.getPaymentAmount());
+        transaction.setStatus(1);
+        transaction.setPaymentChannel(request.getPaymentChannel());
+        transaction.setRemark("订单支付");
+        transaction.setCreatedTime(LocalDateTime.now());
+        transactionRecordMapper.insertTransactionRecord(transaction);
+        
+        // 8. 返回更新后的订单信息
+        return convertOrderToVO(order);
+    }
+
+    /**
+     * 将订单实体转换为视图对象
+     */
+    private OrderVO convertOrderToVO(Order order) {
+        OrderVO orderVO = new OrderVO();
+        BeanUtils.copyProperties(order, orderVO);
+        
+        // 设置商品标题
+        Product product = productMapper.selectProductById(order.getProductId());
+        if (product != null) {
+            orderVO.setProductTitle(product.getTitle());
+        }
+        
+        // 设置地址信息
         OrderAddress orderAddress = orderAddressMapper.selectByOrderId(order.getOrderId());
         if (orderAddress != null) {
             OrderAddressVO addressVO = new OrderAddressVO();

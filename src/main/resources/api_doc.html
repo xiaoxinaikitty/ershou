@@ -1,0 +1,53 @@
+        <div class="api-item">
+            <h3>支付订单</h3>
+            <p>请求路径：/order/pay</p>
+            <p>请求方法：PUT</p>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+            </pre>
+            <p>请求数据示例：</p>
+            <pre>
+{
+    "orderId": 1,
+    "userId": 1,
+    "paymentType": 1,
+    "paymentChannel": 2,
+    "transactionNo": "wx202504141528120123456"
+}
+            </pre>
+            <p>响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "orderId": 1,
+        "orderNo": "202504141528120123456",
+        "userId": 1,
+        "sellerId": 2,
+        "productId": 3,
+        "productTitle": "iPhone 12",
+        "orderAmount": 3999.00,
+        "paymentAmount": 3999.00,
+        "orderStatus": 1,
+        "paymentType": 1,
+        "paymentChannel": 2,
+        "transactionNo": "wx202504141528120123456",
+        "paymentTime": "2025-04-14 15:28:12",
+        "deliveryType": 2,
+        "deliveryFee": 15.00,
+        "remark": "希望尽快发货",
+        "createdTime": "2025-04-14 15:28:12",
+        "address": {
+            "receiverName": "张三",
+            "receiverPhone": "13800138000",
+            "province": "北京市",
+            "city": "北京市",
+            "district": "海淀区",
+            "detailAddress": "中关村大街1号"
+        }
+    },
+    "message": "success"
+}
+            </pre>
+        </div> 
