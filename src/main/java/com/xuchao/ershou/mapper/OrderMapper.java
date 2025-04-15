@@ -30,4 +30,11 @@ public interface OrderMapper extends BaseMapper<Order> {
      * @return 订单列表
      */
     List<Order> selectOrdersByUserId(@Param("userId") Long userId);
+    
+    /**
+     * 更新订单信息
+     * @param order 订单更新信息
+     * @return 影响的行数
+     */
+    int updateOrder(Order order);
 }

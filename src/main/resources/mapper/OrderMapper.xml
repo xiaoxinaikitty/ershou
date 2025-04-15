@@ -26,4 +26,16 @@
         SELECT * FROM `order` WHERE user_id = #{userId}
     </select>
     
+    <!-- 更新订单信息 -->
+    <update id="updateOrder" parameterType="com.xuchao.ershou.model.entity.Order">
+        UPDATE `order` SET
+            order_status = #{orderStatus},
+            <if test="paymentTime != null">payment_time = #{paymentTime},</if>
+            <if test="deliveryTime != null">delivery_time = #{deliveryTime},</if>
+            <if test="receivedTime != null">received_time = #{receivedTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            updated_time = CURRENT_TIMESTAMP
+        WHERE order_id = #{orderId}
+    </update>
+    
 </mapper>

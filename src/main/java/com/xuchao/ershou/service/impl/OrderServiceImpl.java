@@ -8,6 +8,7 @@ import com.xuchao.ershou.mapper.OrderStatusHistoryMapper;
 import com.xuchao.ershou.mapper.ProductMapper;
 import com.xuchao.ershou.mapper.UserMapper;
 import com.xuchao.ershou.model.dao.order.OrderCreateDao;
+import com.xuchao.ershou.model.dao.order.OrderCancelDao;
 import com.xuchao.ershou.model.entity.Order;
 import com.xuchao.ershou.model.entity.OrderAddress;
 import com.xuchao.ershou.model.entity.OrderStatusHistory;
@@ -189,5 +190,85 @@ public class OrderServiceImpl implements OrderService {
         String randomStr = String.valueOf((int)((Math.random() * 9 + 1) * 100000));
         
         return timeStr + randomStr;
+    }
+
+    @Override
+    @Transactional
+    public OrderVO cancelOrder(Long userId, OrderCancelDao orderCancelDao) {
+        // 参数校验
+        if (orderCancelDao == null || orderCancelDao.getOrderId() == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "订单信息不能为空");
+        }
+        
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        // 查询订单是否存在
+        Order order = orderMapper.selectOrderById(orderCancelDao.getOrderId());
+        if (order == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "订单不存在");
+        }
+        
+        // 验证是否是买家本人操作
+        if (!order.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "无权操作此订单");
+        }
+        
+        // 检查订单状态是否可取消（只有待付款、待发货状态可以取消）
+        if (order.getOrderStatus() != 0 && order.getOrderStatus() != 1) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "当前订单状态不可取消");
+        }
+        
+        // 取消订单，更新状态为已取消
+        Integer previousStatus = order.getOrderStatus();
+        order.setOrderStatus(4); // 4表示已取消
+        int result = orderMapper.updateOrder(order);
+        
+        if (result <= 0) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "取消订单失败");
+        }
+        
+        // 如果订单已支付，还需处理退款逻辑（这里暂不实现）
+        
+        // 记录订单状态变更历史
+        OrderStatusHistory statusHistory = new OrderStatusHistory();
+        statusHistory.setOrderId(order.getOrderId());
+        statusHistory.setPreviousStatus(previousStatus);
+        statusHistory.setCurrentStatus(4); // 已取消
+        statusHistory.setOperatorId(userId);
+        statusHistory.setOperatorType(1); // 买家操作
+        statusHistory.setRemark(orderCancelDao.getRemark()); // 取消原因
+        
+        result = orderStatusHistoryMapper.insertOrderStatusHistory(statusHistory);
+        if (result <= 0) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "记录订单状态变更失败");
+        }
+        
+        // 订单取消后，需要恢复商品状态为在售
+        Product product = productMapper.selectProductById(order.getProductId());
+        if (product != null && product.getStatus() == 2) {
+            product.setStatus(1); // 改回在售状态
+            productMapper.updateProduct(product);
+        }
+        
+        // 转换为视图对象返回
+        OrderVO orderVO = new OrderVO();
+        BeanUtils.copyProperties(order, orderVO);
+        
+        // 设置商品标题
+        if (product != null) {
+            orderVO.setProductTitle(product.getTitle());
+        }
+        
+        // 查询并设置订单地址
+        OrderAddress orderAddress = orderAddressMapper.selectByOrderId(order.getOrderId());
+        if (orderAddress != null) {
+            OrderAddressVO addressVO = new OrderAddressVO();
+            BeanUtils.copyProperties(orderAddress, addressVO);
+            orderVO.setAddress(addressVO);
+        }
+        
+        return orderVO;
     }
 }

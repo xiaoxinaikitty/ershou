@@ -1,5 +1,6 @@
 package com.xuchao.ershou.service;
 
+import com.xuchao.ershou.model.dao.order.OrderCancelDao;
 import com.xuchao.ershou.model.dao.order.OrderCreateDao;
 import com.xuchao.ershou.model.vo.OrderVO;
 import java.util.List;
@@ -23,4 +24,12 @@ public interface OrderService {
      * @return 用户的订单列表
      */
     List<OrderVO> getOrderList(Long userId);
+    
+    /**
+     * 取消订单
+     * @param userId 当前登录用户ID（买家）
+     * @param orderCancelDao 订单取消信息
+     * @return 取消后的订单详情
+     */
+    OrderVO cancelOrder(Long userId, OrderCancelDao orderCancelDao);
 }

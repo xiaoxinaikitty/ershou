@@ -6,6 +6,7 @@ import com.xuchao.ershou.common.ErrorCode;
 import com.xuchao.ershou.common.ResultUtils;
 import com.xuchao.ershou.common.JwtUtil;
 import com.xuchao.ershou.exception.BusinessException;
+import com.xuchao.ershou.model.dao.order.OrderCancelDao;
 import com.xuchao.ershou.model.dao.order.OrderCreateDao;
 import com.xuchao.ershou.model.vo.OrderVO;
 import com.xuchao.ershou.service.OrderService;
@@ -105,5 +106,45 @@ public class OrderController {
         List<OrderVO> orderList = orderService.getOrderList(userId);
 
         return ResultUtils.success(orderList);
+    }
+    
+    /**
+     * 取消订单
+     * @param orderCancelDao 订单取消信息
+     * @param authorization 认证头部(Bearer token)
+     * @return 取消后的订单信息
+     */
+    @PutMapping("/cancel")
+    public BaseResponse<OrderVO> cancelOrder(
+            @RequestBody @Valid OrderCancelDao orderCancelDao,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+
+        Long userId = null;
+        
+        // 1. 从Authorization头中提取Token
+        if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
+            String token = authorization.substring(7);
+            
+            // 2. 验证Token有效性
+            if (!jwtUtil.validateToken(token)) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "无效的token，请重新登录");
+            }
+            
+            // 3. 从Token中提取用户ID
+            userId = jwtUtil.getUserIdFromToken(token);
+        }
+        
+        // 4. 如果从Token中无法获取用户ID，则尝试从请求上下文中获取
+        if (userId == null) {
+            userId = CurrentUserUtils.getCurrentUserId();
+            if (userId == null) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+            }
+        }
+        
+        // 5. 调用服务层取消订单
+        OrderVO orderVO = orderService.cancelOrder(userId, orderCancelDao);
+        
+        return ResultUtils.success(orderVO);
     }
 }

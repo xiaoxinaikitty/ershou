@@ -9,6 +9,7 @@ public enum ErrorCode {
     UNAUTHORIZED(40100, "未授权"),
     FORBIDDEN(40300, "无权限"),
     NOT_FOUND(40400, "请求数据不存在"),
+    OPERATION_ERROR(40500, "操作失败"),
     SYSTEM_ERROR(50000, "系统内部错误");
 
     private final int code;
