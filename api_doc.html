@@ -413,17 +413,20 @@
         <h2>商品图片模块</h2>
 
         <div class="api-item">
-            <h3>添加商品图片</h3>
-            <p>请求路径：/product/image/add</p>
+            <h3>上传商品图片</h3>
+            <p>请求路径：/product/image/upload</p>
             <p>请求方法：POST</p>
-            <p>请求数据示例：</p>
+            <p>请求类型：multipart/form-data</p>
+            <p>请求参数：</p>
             <pre>
-{
-    "productId": 1,
-    "imageUrl": "http://example.com/images/1.jpg",
-    "isMain": 1,
-    "sortOrder": 0
-}
+productId: 1 (商品ID，必填)
+isMain: 1 (是否为主图，0-否，1-是，可选，默认0)
+sortOrder: 0 (图片排序，可选，默认0)
+imageFile: [文件] (图片文件，必填，支持jpg、jpeg、png、gif格式)
+            </pre>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             </pre>
             <p>响应示例：</p>
             <pre>
@@ -432,7 +435,7 @@
     "data": {
         "imageId": 1,
         "productId": 1,
-        "imageUrl": "http://example.com/images/1.jpg",
+        "imageUrl": "http://localhost:8080/images/2e45f7a1-b8c2-4d3a-9e1c-7b164aa95f23.jpg",
         "isMain": 1,
         "sortOrder": 0
     },
@@ -445,6 +448,10 @@
             <h3>删除商品图片</h3>
             <p>请求路径：/product/image/{productId}/{imageId}</p>
             <p>请求方法：DELETE</p>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+            </pre>
             <p>响应示例：</p>
             <pre>
 {
@@ -894,6 +901,137 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
         "hasReply": 0,
         "createdTime": "2025-04-16 15:30:22"
     },
+    "message": "success"
+}
+            </pre>
+        </div>
+
+        <div class="api-item">
+            <h3>发送订单消息（催促发货）</h3>
+            <p>请求路径：/order/message/send</p>
+            <p>请求方法：POST</p>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+            </pre>
+            <p>请求数据示例：</p>
+            <pre>
+{
+    "orderId": 1,
+    "productId": 3,
+    "senderId": 1,
+    "receiverId": 2,
+    "content": "您好，请问我购买的商品什么时候发货？期待尽快收到。"
+}
+            </pre>
+            <p>响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "messageId": 1,
+        "orderId": 1,
+        "orderNo": "202504141528120123456",
+        "productId": 3,
+        "productTitle": "iPhone 12",
+        "senderId": 1,
+        "senderName": "张三",
+        "receiverId": 2,
+        "receiverName": "李四",
+        "content": "您好，请问我购买的商品什么时候发货？期待尽快收到。",
+        "isRead": 0,
+        "createdTime": "2025-04-17 09:30:45"
+    },
+    "message": "success"
+}
+            </pre>
+        </div>
+
+        <div class="api-item">
+            <h3>获取订单消息列表</h3>
+            <p>请求路径：/order/message/list/{orderId}</p>
+            <p>请求方法：GET</p>
+            <p>响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": [
+        {
+            "messageId": 1,
+            "orderId": 1,
+            "orderNo": "202504141528120123456",
+            "productId": 3,
+            "productTitle": "iPhone 12",
+            "senderId": 1,
+            "senderName": "张三",
+            "receiverId": 2,
+            "receiverName": "李四",
+            "content": "您好，请问我购买的商品什么时候发货？期待尽快收到。",
+            "isRead": 0,
+            "createdTime": "2025-04-17 09:30:45"
+        }
+    ],
+    "message": "success"
+}
+            </pre>
+        </div>
+
+        <div class="api-item">
+            <h3>获取接收的消息列表</h3>
+            <p>请求路径：/order/message/received/{userId}</p>
+            <p>请求方法：GET</p>
+            <p>响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": [
+        {
+            "messageId": 1,
+            "orderId": 1,
+            "orderNo": "202504141528120123456",
+            "productId": 3,
+            "productTitle": "iPhone 12",
+            "senderId": 1,
+            "senderName": "张三",
+            "receiverId": 2,
+            "receiverName": "李四",
+            "content": "您好，请问我购买的商品什么时候发货？期待尽快收到。",
+            "isRead": 0,
+            "createdTime": "2025-04-17 09:30:45"
+        },
+        {
+            "messageId": 3,
+            "orderId": 2,
+            "orderNo": "202504151028330123789",
+            "productId": 5,
+            "productTitle": "MacBook Pro",
+            "senderId": 3,
+            "senderName": "王五",
+            "receiverId": 2,
+            "receiverName": "李四",
+            "content": "我刚刚确认了订单，可以发货了吗？",
+            "isRead": 1,
+            "createdTime": "2025-04-16 10:35:22"
+        }
+    ],
+    "message": "success"
+}
+            </pre>
+        </div>
+
+        <div class="api-item">
+            <h3>标记消息为已读</h3>
+            <p>请求路径：/order/message/read/{messageId}</p>
+            <p>请求方法：PUT</p>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+            </pre>
+            <p>响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": true,
     "message": "success"
 }
             </pre>

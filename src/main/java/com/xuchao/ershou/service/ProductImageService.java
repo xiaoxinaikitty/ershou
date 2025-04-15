@@ -3,6 +3,7 @@ package com.xuchao.ershou.service;
 import com.xuchao.ershou.model.dao.product.ProductImageAddDao;
 import com.xuchao.ershou.model.entity.ProductImage;
 import com.xuchao.ershou.model.vo.ProductImageVO;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 商品图片服务接口
@@ -16,6 +17,15 @@ public interface ProductImageService {
      * @return 添加的商品图片信息
      */
     ProductImageVO addProductImage(Long userId, ProductImageAddDao productImageAddDao);
+    
+    /**
+     * 上传商品图片
+     * @param userId 当前登录用户ID
+     * @param productImageAddDao 商品图片信息
+     * @param imageFile 图片文件
+     * @return 添加的商品图片信息
+     */
+    ProductImageVO uploadProductImage(Long userId, ProductImageAddDao productImageAddDao, MultipartFile imageFile);
     
     /**
      * 删除商品图片

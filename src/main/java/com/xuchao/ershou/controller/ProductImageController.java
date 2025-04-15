@@ -13,12 +13,13 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 商品图片控制器
@@ -35,15 +36,26 @@ public class ProductImageController {
     
     /**
      * 添加商品图片
-     * @param productImageAddDao 商品图片信息
+     * @param productId 商品ID
+     * @param isMain 是否为主图(0否 1是)
+     * @param sortOrder 图片排序
+     * @param imageFile 图片文件
      * @param authorization 认证头部(Bearer token)
      * @return 处理结果
      */
-    @PostMapping("/add")
-    public BaseResponse<ProductImageVO> addProductImage(
-            @RequestBody @Valid ProductImageAddDao productImageAddDao,
+    @PostMapping("/upload")
+    public BaseResponse<ProductImageVO> uploadProductImage(
+            @RequestParam("productId") Long productId,
+            @RequestParam(value = "isMain", required = false, defaultValue = "0") Integer isMain,
+            @RequestParam(value = "sortOrder", required = false, defaultValue = "0") Integer sortOrder,
+            @RequestParam("imageFile") MultipartFile imageFile,
             @RequestHeader(value = "Authorization", required = false) String authorization) {
             
+        // 检查图片文件
+        if (imageFile == null || imageFile.isEmpty()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片文件不能为空");
+        }
+        
         Long userId = null;
         
         // 1. 从Authorization头中提取Token
@@ -67,8 +79,14 @@ public class ProductImageController {
             }
         }
         
-        // 5. 调用服务层添加商品图片
-        ProductImageVO productImageVO = productImageService.addProductImage(userId, productImageAddDao);
+        // 5. 构建商品图片添加对象
+        ProductImageAddDao productImageAddDao = new ProductImageAddDao();
+        productImageAddDao.setProductId(productId);
+        productImageAddDao.setIsMain(isMain);
+        productImageAddDao.setSortOrder(sortOrder);
+        
+        // 6. 调用服务层上传商品图片
+        ProductImageVO productImageVO = productImageService.uploadProductImage(userId, productImageAddDao, imageFile);
         
         return ResultUtils.success(productImageVO);
     }

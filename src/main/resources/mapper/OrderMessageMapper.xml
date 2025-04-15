@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuchao.ershou.mapper.OrderMessageMapper">
+    
+    <resultMap id="BaseResultMap" type="com.xuchao.ershou.model.entity.OrderMessage">
+        <id column="message_id" property="messageId" />
+        <result column="order_id" property="orderId" />
+        <result column="sender_id" property="senderId" />
+        <result column="receiver_id" property="receiverId" />
+        <result column="content" property="content" />
+        <result column="is_read" property="isRead" />
+        <result column="created_time" property="createdTime" />
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        message_id, order_id, sender_id, receiver_id, content, is_read, created_time
+    </sql>
+    
+    <insert id="insertOrderMessage" parameterType="com.xuchao.ershou.model.entity.OrderMessage" 
+            useGeneratedKeys="true" keyProperty="messageId">
+        INSERT INTO order_message (
+            order_id, sender_id, receiver_id, content, is_read
+        ) VALUES (
+            #{orderId}, #{senderId}, #{receiverId}, #{content}, #{isRead}
+        )
+    </insert>
+    
+    <select id="selectByOrderId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM order_message
+        WHERE order_id = #{orderId}
+        ORDER BY created_time DESC
+    </select>
+    
+    <select id="selectByReceiverId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM order_message
+        WHERE receiver_id = #{receiverId}
+        ORDER BY created_time DESC
+    </select>
+    
+    <select id="selectBySenderId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" />
+        FROM order_message
+        WHERE sender_id = #{senderId}
+        ORDER BY created_time DESC
+    </select>
+    
+    <update id="updateMessageReadStatus">
+        UPDATE order_message
+        SET is_read = 1
+        WHERE message_id = #{messageId}
+    </update>
+    
+</mapper> 

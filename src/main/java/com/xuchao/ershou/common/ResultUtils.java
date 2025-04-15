@@ -17,4 +17,8 @@ public class ResultUtils {
         response.setMessage(message);
         return response;
     }
+    
+    public static <T> BaseResponse<T> error(ErrorCode errorCode) {
+        return error(errorCode.getCode(), errorCode.getMessage());
+    }
 }

@@ -25,13 +25,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
-    // 不需要验证的路径
-    private static final List<String> WHITELIST = Arrays.asList(
+    // 不需要token的白名单路径
+    private final List<String> whiteList = Arrays.asList(
             "/user/login",
             "/user/register",
             "/user/admin",
-            // 其他不需要验证的路径
-            "/error"
+            "/error",
+            "/images/**",  // 图片资源路径
+            "/product/image/upload"  // 添加商品图片上传接口
     );
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil, ObjectMapper objectMapper) {
@@ -42,56 +43,46 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        
-        // 检查请求路径是否在白名单中
-        String requestPath = request.getRequestURI();
-        if (isPathInWhitelist(requestPath)) {
+        String path = request.getRequestURI();
+
+        // 1. 白名单路径放行
+        if (isWhiteListPath(path)) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 获取Authorization头
+        // 2. 获取请求头中的token
         String authHeader = request.getHeader("Authorization");
-        
-        // 检查是否有token
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            sendErrorResponse(response, ErrorCode.UNAUTHORIZED, "未授权：缺少授权头");
+            handleUnauthorized(response);
             return;
         }
-        
-        // 提取token
+
+        // 3. 提取token并验证
         String token = authHeader.substring(7);
-        
-        // 验证token
-        if (!jwtUtil.validateToken(token)) {
-            sendErrorResponse(response, ErrorCode.UNAUTHORIZED, "未授权：无效的token");
-            return;
+        try {
+            if (!jwtUtil.validateToken(token)) {
+                handleUnauthorized(response);
+                return;
+            }
+            
+            // 4. 验证通过，放行
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            handleUnauthorized(response);
         }
-        
-        // 提取用户信息，可以放入request中，以便后续的处理器使用
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        String username = jwtUtil.getUsernameFromToken(token);
-        
-        request.setAttribute("userId", userId);
-        request.setAttribute("username", username);
-        
-        // 继续执行过滤链
-        filterChain.doFilter(request, response);
     }
-    
-    // 检查路径是否在白名单中
-    private boolean isPathInWhitelist(String requestPath) {
-        return WHITELIST.stream()
-                .anyMatch(pattern -> pathMatcher.match(pattern, requestPath));
+
+    private boolean isWhiteListPath(String path) {
+        return whiteList.stream().anyMatch(pattern -> pathMatcher.match(pattern, path));
     }
-    
-    // 发送错误响应
-    private void sendErrorResponse(HttpServletResponse response, ErrorCode errorCode, String message) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+    private void handleUnauthorized(HttpServletResponse response) throws IOException {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         
-        BaseResponse<?> errorResponse = ResultUtils.error(errorCode.getCode(), message);
-        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+        BaseResponse<Object> baseResponse = ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR);
+        response.getWriter().write(objectMapper.writeValueAsString(baseResponse));
     }
 }
