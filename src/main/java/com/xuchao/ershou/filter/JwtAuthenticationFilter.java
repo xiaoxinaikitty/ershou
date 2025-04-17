@@ -66,11 +66,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
             
-            // 4. 从token中提取用户信息，并设置到请求属性中
+            // 4. 从token中提取用户信息并设置到请求属性中
             Long userId = jwtUtil.getUserIdFromToken(token);
             String username = jwtUtil.getUsernameFromToken(token);
             
-            // 设置到请求属性中，以便后续的处理器使用
             request.setAttribute("userId", userId);
             request.setAttribute("username", username);
             
