@@ -32,7 +32,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/user/admin",
             "/error",
             "/images/**",  // 图片资源路径
-            "/product/image/upload"  // 添加商品图片上传接口
+            "/product/image/upload",  // 添加商品图片上传接口
+            "/product/image/add-by-url",  // 通过URL添加商品图片接口
+            "/file/upload",  // 通用文件上传接口
+            "/files/**"  // 文件访问路径
     );
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil, ObjectMapper objectMapper) {

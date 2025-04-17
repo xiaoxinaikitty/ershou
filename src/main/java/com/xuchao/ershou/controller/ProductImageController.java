@@ -19,7 +19,10 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 /**
  * 商品图片控制器
@@ -92,6 +95,51 @@ public class ProductImageController {
     }
     
     /**
+     * 通过URL添加商品图片
+     * @param productImageAddDao 包含图片URL的商品图片信息
+     * @param authorization 认证头部(Bearer token)
+     * @return 处理结果
+     */
+    @PostMapping("/add-by-url")
+    public BaseResponse<ProductImageVO> addProductImageByUrl(
+            @RequestBody @Valid ProductImageAddDao productImageAddDao,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+            
+        // 检查图片URL
+        if (productImageAddDao == null || productImageAddDao.getImageUrl() == null || productImageAddDao.getImageUrl().trim().isEmpty()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片URL不能为空");
+        }
+        
+        Long userId = null;
+        
+        // 1. 从Authorization头中提取Token
+        if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
+            String token = authorization.substring(7);
+            
+            // 2. 验证Token有效性
+            if (!jwtUtil.validateToken(token)) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "无效的token，请重新登录");
+            }
+            
+            // 3. 从Token中提取用户ID
+            userId = jwtUtil.getUserIdFromToken(token);
+        }
+        
+        // 4. 如果从Token中无法获取用户ID，则尝试从请求上下文中获取
+        if (userId == null) {
+            userId = CurrentUserUtils.getCurrentUserId();
+            if (userId == null) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+            }
+        }
+        
+        // 5. 调用服务层通过URL添加商品图片
+        ProductImageVO productImageVO = productImageService.addProductImageByUrl(userId, productImageAddDao);
+        
+        return ResultUtils.success(productImageVO);
+    }
+    
+    /**
      * 删除商品图片
      * @param productId 商品ID
      * @param imageId 图片ID
@@ -135,5 +183,50 @@ public class ProductImageController {
         } else {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图片删除失败");
         }
+    }
+    
+    /**
+     * 批量添加商品图片
+     * @param productImageAddDao 包含多个图片URL的商品图片信息
+     * @param authorization 认证头部(Bearer token)
+     * @return 处理结果
+     */
+    @PostMapping("/add")
+    public BaseResponse<List<ProductImageVO>> addProductImages(
+            @RequestBody @Valid ProductImageAddDao productImageAddDao,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+            
+        // 检查图片URL列表
+        if (productImageAddDao == null || productImageAddDao.getImageUrls() == null || productImageAddDao.getImageUrls().isEmpty()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片URL列表不能为空");
+        }
+        
+        Long userId = null;
+        
+        // 1. 从Authorization头中提取Token
+        if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
+            String token = authorization.substring(7);
+            
+            // 2. 验证Token有效性
+            if (!jwtUtil.validateToken(token)) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "无效的token，请重新登录");
+            }
+            
+            // 3. 从Token中提取用户ID
+            userId = jwtUtil.getUserIdFromToken(token);
+        }
+        
+        // 4. 如果从Token中无法获取用户ID，则尝试从请求上下文中获取
+        if (userId == null) {
+            userId = CurrentUserUtils.getCurrentUserId();
+            if (userId == null) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+            }
+        }
+        
+        // 5. 调用服务层批量添加商品图片
+        List<ProductImageVO> productImageVOList = productImageService.batchAddProductImagesByUrl(userId, productImageAddDao);
+        
+        return ResultUtils.success(productImageVOList);
     }
 }

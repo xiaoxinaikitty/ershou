@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -175,6 +177,65 @@ public class ProductImageServiceImpl implements ProductImageService {
     
     @Override
     @Transactional
+    public ProductImageVO addProductImageByUrl(Long userId, ProductImageAddDao productImageAddDao) {
+        // 参数校验
+        if (productImageAddDao == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "商品图片信息不能为空");
+        }
+        
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        String imageUrl = productImageAddDao.getImageUrl();
+        if (imageUrl == null || imageUrl.trim().isEmpty()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片URL不能为空");
+        }
+        
+        // 简单校验URL格式
+        if (!isValidImageUrl(imageUrl)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "无效的图片URL，请提供以http://或https://开头的有效URL");
+        }
+        
+        Long productId = productImageAddDao.getProductId();
+        
+        // 查询商品是否存在
+        Product product = productMapper.selectProductById(productId);
+        if (product == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "商品不存在");
+        }
+        
+        // 校验当前用户是否为商品发布者
+        if (!product.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "无权限为他人发布的商品添加图片");
+        }
+        
+        // 创建商品图片对象
+        ProductImage productImage = new ProductImage();
+        BeanUtils.copyProperties(productImageAddDao, productImage);
+        // 使用提供的URL作为图片URL
+        productImage.setImageUrl(imageUrl);
+        
+        // 如果当前图片是主图，则需要将该商品的其他图片设置为非主图
+        if (productImage.getIsMain() != null && productImage.getIsMain() == 1) {
+            productImageMapper.updateOtherImagesNonMain(productId);
+        }
+        
+        // 插入数据库
+        int result = productImageMapper.insertProductImage(productImage);
+        if (result <= 0) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图片添加失败");
+        }
+        
+        // 转换为视图对象返回
+        ProductImageVO productImageVO = new ProductImageVO();
+        BeanUtils.copyProperties(productImage, productImageVO);
+        
+        return productImageVO;
+    }
+    
+    @Override
+    @Transactional
     public boolean deleteProductImage(Long userId, Long productId, Long imageId) {
         // 参数校验
         if (userId == null) {
@@ -232,6 +293,90 @@ public class ProductImageServiceImpl implements ProductImageService {
         return result > 0;
     }
     
+    @Override
+    @Transactional
+    public List<ProductImageVO> batchAddProductImagesByUrl(Long userId, ProductImageAddDao productImageAddDao) {
+        // 参数校验
+        if (productImageAddDao == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "商品图片信息不能为空");
+        }
+        
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        List<String> imageUrls = productImageAddDao.getImageUrls();
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片URL列表不能为空");
+        }
+        
+        Long productId = productImageAddDao.getProductId();
+        
+        // 查询商品是否存在
+        Product product = productMapper.selectProductById(productId);
+        if (product == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "商品不存在");
+        }
+        
+        // 校验当前用户是否为商品发布者
+        if (!product.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "无权限为他人发布的商品添加图片");
+        }
+        
+        // 批量处理图片URL
+        List<ProductImageVO> results = new ArrayList<>();
+        boolean hasSetMainImage = false;
+        
+        for (int i = 0; i < imageUrls.size(); i++) {
+            String imageUrl = imageUrls.get(i);
+            
+            if (imageUrl == null || imageUrl.trim().isEmpty()) {
+                continue; // 跳过空URL
+            }
+            
+            // 简单校验URL格式
+            if (!isValidImageUrl(imageUrl)) {
+                continue; // 跳过无效URL
+            }
+            
+            // 创建商品图片对象
+            ProductImage productImage = new ProductImage();
+            productImage.setProductId(productId);
+            
+            // 第一张图片设为主图（如果指定了isMain=1）
+            if (i == 0 && productImageAddDao.getIsMain() != null && productImageAddDao.getIsMain() == 1) {
+                productImage.setIsMain(1);
+                hasSetMainImage = true;
+                
+                // 将该商品的其他图片设置为非主图
+                productImageMapper.updateOtherImagesNonMain(productId);
+            } else {
+                productImage.setIsMain(0);
+            }
+            
+            // 设置图片排序（按照列表顺序递增）
+            int sortOrder = productImageAddDao.getSortOrder() != null ? 
+                            productImageAddDao.getSortOrder() + i : i;
+            productImage.setSortOrder(sortOrder);
+            
+            // 使用提供的URL作为图片URL
+            productImage.setImageUrl(imageUrl);
+            
+            // 插入数据库
+            int result = productImageMapper.insertProductImage(productImage);
+            if (result <= 0) {
+                throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图片添加失败");
+            }
+            
+            // 转换为视图对象添加到结果列表
+            ProductImageVO productImageVO = new ProductImageVO();
+            BeanUtils.copyProperties(productImage, productImageVO);
+            results.add(productImageVO);
+        }
+        
+        return results;
+    }
+    
     /**
      * 获取文件扩展名
      */
@@ -255,5 +400,17 @@ public class ProductImageServiceImpl implements ProductImageService {
         }
         return extension.equals("jpg") || extension.equals("jpeg") || 
                extension.equals("png") || extension.equals("gif");
+    }
+    
+    /**
+     * 检查URL是否为有效的图片URL
+     */
+    private boolean isValidImageUrl(String url) {
+        if (url == null || url.isEmpty()) {
+            return false;
+        }
+        
+        // 简单校验URL格式，必须以http://或https://开头
+        return url.startsWith("http://") || url.startsWith("https://");
     }
 }

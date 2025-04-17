@@ -3,6 +3,8 @@ package com.xuchao.ershou.model.dao.product;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * 添加商品图片的数据传输对象
  */
@@ -24,4 +26,14 @@ public class ProductImageAddDao {
      * 图片排序
      */
     private Integer sortOrder = 0;
+    
+    /**
+     * 图片URL
+     */
+    private String imageUrl;
+    
+    /**
+     * 多个图片URL的列表
+     */
+    private List<String> imageUrls;
 }

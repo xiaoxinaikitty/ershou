@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.nio.file.Paths;
+
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
@@ -15,6 +17,9 @@ public class WebConfig implements WebMvcConfigurer {
     
     @Value("${file.upload.path:D:/upload/images}")
     private String uploadPath;
+    
+    // 通用文件上传目录
+    private static final String FILE_UPLOAD_PATH = "@files files";
 
     public WebConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -35,5 +40,10 @@ public class WebConfig implements WebMvcConfigurer {
         // 映射本地文件夹到URL路径，使上传的图片可访问
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("file:" + uploadPath + "/");
+        
+        // 映射通用文件上传目录
+        String absolutePath = Paths.get(FILE_UPLOAD_PATH).toAbsolutePath().toString();
+        registry.addResourceHandler("/files/**")
+                .addResourceLocations("file:" + absolutePath + "/");
     }
 }

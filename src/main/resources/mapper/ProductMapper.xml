@@ -17,6 +17,11 @@
         <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
     </resultMap>
 
+    <sql id="Base_Column_List">
+        product_id, title, description, price, original_price, category_id, user_id, 
+        condition_level, status, location, view_count, created_time, updated_time
+    </sql>
+
     <insert id="insertProduct" parameterType="com.xuchao.ershou.model.entity.Product" useGeneratedKeys="true" keyProperty="productId">
         INSERT INTO product (
             title,
@@ -47,19 +52,7 @@
     
     <select id="selectProductById" resultMap="BaseResultMap">
         SELECT
-            product_id,
-            title,
-            description,
-            price,
-            original_price,
-            category_id,
-            user_id,
-            condition_level,
-            status,
-            location,
-            view_count,
-            created_time,
-            updated_time
+            <include refid="Base_Column_List" />
         FROM product
         WHERE product_id = #{productId}
     </select>
@@ -75,8 +68,106 @@
             <if test="conditionLevel != null">condition_level = #{conditionLevel},</if>
             <if test="status != null">status = #{status},</if>
             <if test="location != null">location = #{location},</if>
+            <if test="viewCount != null">view_count = #{viewCount},</if>
             updated_time = CURRENT_TIMESTAMP
         </set>
         WHERE product_id = #{productId}
     </update>
+    
+    <sql id="Query_Condition">
+        <where>
+            <if test="query.keyword != null and query.keyword != ''">
+                AND title LIKE CONCAT('%', #{query.keyword}, '%')
+            </if>
+            <if test="query.categoryId != null">
+                AND category_id = #{query.categoryId}
+            </if>
+            <if test="query.minPrice != null">
+                AND price >= #{query.minPrice}
+            </if>
+            <if test="query.maxPrice != null">
+                AND price &lt;= #{query.maxPrice}
+            </if>
+            <if test="query.status != null">
+                AND status = #{query.status}
+            </if>
+            <if test="query.minConditionLevel != null">
+                AND condition_level >= #{query.minConditionLevel}
+            </if>
+            <if test="query.location != null and query.location != ''">
+                AND location LIKE CONCAT('%', #{query.location}, '%')
+            </if>
+            <if test="query.sellerId != null">
+                AND user_id = #{query.sellerId}
+            </if>
+        </where>
+    </sql>
+    
+    <sql id="Sort_Condition">
+        <if test="query.sortField == 'price'">
+            <choose>
+                <when test="query.sortOrder == 'asc'">
+                    ORDER BY price ASC
+                </when>
+                <otherwise>
+                    ORDER BY price DESC
+                </otherwise>
+            </choose>
+        </if>
+        <if test="query.sortField == 'time'">
+            <choose>
+                <when test="query.sortOrder == 'asc'">
+                    ORDER BY created_time ASC
+                </when>
+                <otherwise>
+                    ORDER BY created_time DESC
+                </otherwise>
+            </choose>
+        </if>
+        <if test="query.sortField == 'view'">
+            <choose>
+                <when test="query.sortOrder == 'asc'">
+                    ORDER BY view_count ASC
+                </when>
+                <otherwise>
+                    ORDER BY view_count DESC
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+    
+    <select id="selectProductPage" resultType="com.xuchao.ershou.model.vo.ProductPageVO">
+        SELECT 
+            p.product_id,
+            p.title,
+            p.price,
+            p.original_price,
+            p.category_id,
+            pc.category_name,
+            p.user_id,
+            u.username,
+            p.condition_level,
+            p.location,
+            p.view_count,
+            p.created_time,
+            pi.image_url as mainImageUrl
+        FROM 
+            product p
+        LEFT JOIN 
+            product_category pc ON p.category_id = pc.category_id
+        LEFT JOIN 
+            user u ON p.user_id = u.user_id
+        LEFT JOIN 
+            (SELECT product_id, image_url FROM product_image WHERE is_main = 1) pi 
+            ON p.product_id = pi.product_id
+        <include refid="Query_Condition" />
+        <include refid="Sort_Condition" />
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <select id="countProducts" resultType="long">
+        SELECT COUNT(1)
+        FROM product p
+        <include refid="Query_Condition" />
+    </select>
 </mapper>

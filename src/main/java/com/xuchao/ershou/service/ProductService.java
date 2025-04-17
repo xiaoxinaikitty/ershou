@@ -1,8 +1,11 @@
 package com.xuchao.ershou.service;
 
 import com.xuchao.ershou.model.dao.product.ProductAddDao;
+import com.xuchao.ershou.model.dao.product.ProductPageQueryDao;
 import com.xuchao.ershou.model.dao.product.ProductUpdateDao;
 import com.xuchao.ershou.model.entity.Product;
+import com.xuchao.ershou.model.vo.PageResult;
+import com.xuchao.ershou.model.vo.ProductPageVO;
 
 /**
  * 商品服务接口
@@ -39,4 +42,11 @@ public interface ProductService {
      * @return 操作是否成功
      */
     boolean deleteProduct(Long userId, Long productId);
+    
+    /**
+     * 分页查询商品列表
+     * @param queryParams 查询参数
+     * @return 分页结果
+     */
+    PageResult<ProductPageVO> pageProducts(ProductPageQueryDao queryParams);
 }

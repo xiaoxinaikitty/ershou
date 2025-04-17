@@ -5,8 +5,11 @@ import com.xuchao.ershou.common.CurrentUserUtils;
 import com.xuchao.ershou.common.ResultUtils;
 import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.model.dao.product.ProductAddDao;
+import com.xuchao.ershou.model.dao.product.ProductPageQueryDao;
 import com.xuchao.ershou.model.dao.product.ProductUpdateDao;
 import com.xuchao.ershou.model.entity.Product;
+import com.xuchao.ershou.model.vo.PageResult;
+import com.xuchao.ershou.model.vo.ProductPageVO;
 import com.xuchao.ershou.service.ProductService;
 import com.xuchao.ershou.common.ErrorCode;
 import jakarta.validation.Valid;
@@ -99,5 +102,18 @@ public class ProductController {
         } else {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "商品删除失败");
         }
+    }
+    
+    /**
+     * 分页查询商品列表
+     * @param queryParams 查询参数
+     * @return 分页结果
+     */
+    @GetMapping("/list")
+    public BaseResponse<PageResult<ProductPageVO>> listProducts(ProductPageQueryDao queryParams) {
+        // 调用服务层分页查询商品
+        PageResult<ProductPageVO> pageResult = productService.pageProducts(queryParams);
+        
+        return ResultUtils.success(pageResult);
     }
 }

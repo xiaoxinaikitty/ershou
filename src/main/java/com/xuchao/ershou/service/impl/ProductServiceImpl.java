@@ -3,15 +3,20 @@ package com.xuchao.ershou.service.impl;
 import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.mapper.ProductMapper;
 import com.xuchao.ershou.model.dao.product.ProductAddDao;
+import com.xuchao.ershou.model.dao.product.ProductPageQueryDao;
 import com.xuchao.ershou.model.dao.product.ProductUpdateDao;
 import com.xuchao.ershou.model.entity.Product;
+import com.xuchao.ershou.model.vo.PageResult;
+import com.xuchao.ershou.model.vo.ProductPageVO;
 import com.xuchao.ershou.service.ProductService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.xuchao.ershou.common.ErrorCode;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * 商品服务实现类
@@ -23,6 +28,7 @@ public class ProductServiceImpl implements ProductService {
     private ProductMapper productMapper;
     
     @Override
+    @Transactional
     public Product addProduct(Long userId, ProductAddDao productAddDao) {
         // 参数校验（虽然有注解校验，这里再做一层基本校验）
         if (productAddDao == null) {
@@ -79,6 +85,7 @@ public class ProductServiceImpl implements ProductService {
     }
     
     @Override
+    @Transactional
     public Product updateProduct(Long userId, ProductUpdateDao productUpdateDao) {
         // 参数校验
         if (productUpdateDao == null || productUpdateDao.getProductId() == null) {
@@ -144,6 +151,7 @@ public class ProductServiceImpl implements ProductService {
     }
     
     @Override
+    @Transactional
     public boolean deleteProduct(Long userId, Long productId) {
         // 参数校验
         if (productId == null || productId <= 0) {
@@ -178,5 +186,45 @@ public class ProductServiceImpl implements ProductService {
         // 执行更新
         int result = productMapper.updateProduct(updateProduct);
         return result > 0;
+    }
+    
+    @Override
+    public PageResult<ProductPageVO> pageProducts(ProductPageQueryDao queryParams) {
+        // 参数校验
+        if (queryParams == null) {
+            queryParams = new ProductPageQueryDao();
+        }
+        
+        // 确保页码和每页大小有效
+        if (queryParams.getPageNum() == null || queryParams.getPageNum() < 1) {
+            queryParams.setPageNum(1);
+        }
+        
+        if (queryParams.getPageSize() == null || queryParams.getPageSize() < 1) {
+            queryParams.setPageSize(10);
+        }
+        
+        // 限制每页最大数量，防止大量数据查询影响性能
+        if (queryParams.getPageSize() > 50) {
+            queryParams.setPageSize(50);
+        }
+        
+        // 计算分页偏移量
+        int offset = (queryParams.getPageNum() - 1) * queryParams.getPageSize();
+        int limit = queryParams.getPageSize();
+        
+        // 查询符合条件的总记录数
+        long total = productMapper.countProducts(queryParams);
+        
+        // 如果没有记录，直接返回空结果
+        if (total == 0) {
+            return PageResult.build(queryParams.getPageNum(), queryParams.getPageSize(), 0L, List.of());
+        }
+        
+        // 查询当前页数据
+        List<ProductPageVO> productList = productMapper.selectProductPage(queryParams, offset, limit);
+        
+        // 构建并返回分页结果
+        return PageResult.build(queryParams.getPageNum(), queryParams.getPageSize(), total, productList);
     }
 }

@@ -235,6 +235,480 @@
         <h2>商品模块</h2>
 
         <div class="api-item">
+            <h3>分页查询商品列表</h3>
+            <p>接口描述：分页获取商品列表，支持多种筛选条件和排序方式</p>
+            <p>请求路径：/product/list</p>
+            <p>请求方法：GET</p>
+            <p>请求参数说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>参数名</th>
+                    <th>必选</th>
+                    <th>类型</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>pageNum</td>
+                    <td>否</td>
+                    <td>int</td>
+                    <td>当前页码，从1开始，默认1</td>
+                </tr>
+                <tr>
+                    <td>pageSize</td>
+                    <td>否</td>
+                    <td>int</td>
+                    <td>每页数量，默认10，最大50</td>
+                </tr>
+                <tr>
+                    <td>keyword</td>
+                    <td>否</td>
+                    <td>string</td>
+                    <td>商品标题关键词搜索</td>
+                </tr>
+                <tr>
+                    <td>categoryId</td>
+                    <td>否</td>
+                    <td>int</td>
+                    <td>商品分类ID筛选</td>
+                </tr>
+                <tr>
+                    <td>minPrice</td>
+                    <td>否</td>
+                    <td>double</td>
+                    <td>价格下限筛选</td>
+                </tr>
+                <tr>
+                    <td>maxPrice</td>
+                    <td>否</td>
+                    <td>double</td>
+                    <td>价格上限筛选</td>
+                </tr>
+                <tr>
+                    <td>sortField</td>
+                    <td>否</td>
+                    <td>string</td>
+                    <td>排序字段(price-价格, time-时间, view-浏览量)，默认time</td>
+                </tr>
+                <tr>
+                    <td>sortOrder</td>
+                    <td>否</td>
+                    <td>string</td>
+                    <td>排序方式(asc-升序, desc-降序)，默认desc</td>
+                </tr>
+                <tr>
+                    <td>status</td>
+                    <td>否</td>
+                    <td>int</td>
+                    <td>商品状态筛选(0下架 1在售 2已售)，默认1</td>
+                </tr>
+                <tr>
+                    <td>minConditionLevel</td>
+                    <td>否</td>
+                    <td>int</td>
+                    <td>最低成色等级筛选(1-10)</td>
+                </tr>
+                <tr>
+                    <td>location</td>
+                    <td>否</td>
+                    <td>string</td>
+                    <td>地区筛选</td>
+                </tr>
+                <tr>
+                    <td>sellerId</td>
+                    <td>否</td>
+                    <td>long</td>
+                    <td>卖家用户ID筛选</td>
+                </tr>
+            </table>
+            <p>请求数据模型：</p>
+            <pre>
+// ProductPageQueryDao.java
+public class ProductPageQueryDao {
+    
+    /**
+     * 当前页码，从1开始
+     */
+    private Integer pageNum = 1;
+    
+    /**
+     * 每页数量，默认10
+     */
+    private Integer pageSize = 10;
+    
+    /**
+     * 商品标题关键词
+     */
+    private String keyword;
+    
+    /**
+     * 商品分类ID
+     */
+    private Integer categoryId;
+    
+    /**
+     * 价格下限
+     */
+    private Double minPrice;
+    
+    /**
+     * 价格上限
+     */
+    private Double maxPrice;
+    
+    /**
+     * 排序字段 (price-价格, time-时间, view-浏览量)
+     */
+    private String sortField = "time";
+    
+    /**
+     * 排序方式 (asc-升序, desc-降序)
+     */
+    private String sortOrder = "desc";
+    
+    /**
+     * 商品状态筛选 (0下架 1在售 2已售)
+     */
+    private Integer status = 1;
+    
+    /**
+     * 最低成色等级(1-10)
+     */
+    private Integer minConditionLevel;
+    
+    /**
+     * 地区筛选
+     */
+    private String location;
+    
+    /**
+     * 卖家ID
+     */
+    private Long sellerId;
+}
+            </pre>
+            <p>请求示例：</p>
+            <pre>
+GET /product/list?pageNum=1&pageSize=10&categoryId=2&minPrice=1000&maxPrice=5000&sortField=price&sortOrder=asc
+            </pre>
+            <p>响应参数说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>参数名</th>
+                    <th>类型</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>code</td>
+                    <td>int</td>
+                    <td>状态码，0表示成功</td>
+                </tr>
+                <tr>
+                    <td>message</td>
+                    <td>string</td>
+                    <td>提示信息</td>
+                </tr>
+                <tr>
+                    <td>data</td>
+                    <td>object</td>
+                    <td>分页结果数据</td>
+                </tr>
+                <tr>
+                    <td>data.pageNum</td>
+                    <td>int</td>
+                    <td>当前页码</td>
+                </tr>
+                <tr>
+                    <td>data.pageSize</td>
+                    <td>int</td>
+                    <td>每页大小</td>
+                </tr>
+                <tr>
+                    <td>data.total</td>
+                    <td>long</td>
+                    <td>总记录数</td>
+                </tr>
+                <tr>
+                    <td>data.pages</td>
+                    <td>int</td>
+                    <td>总页数</td>
+                </tr>
+                <tr>
+                    <td>data.list</td>
+                    <td>array</td>
+                    <td>当前页商品列表</td>
+                </tr>
+                <tr>
+                    <td>data.hasPrevious</td>
+                    <td>boolean</td>
+                    <td>是否有上一页</td>
+                </tr>
+                <tr>
+                    <td>data.hasNext</td>
+                    <td>boolean</td>
+                    <td>是否有下一页</td>
+                </tr>
+            </table>
+            <p>商品列表项参数说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>参数名</th>
+                    <th>类型</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>productId</td>
+                    <td>long</td>
+                    <td>商品ID</td>
+                </tr>
+                <tr>
+                    <td>title</td>
+                    <td>string</td>
+                    <td>商品标题</td>
+                </tr>
+                <tr>
+                    <td>price</td>
+                    <td>decimal</td>
+                    <td>商品价格</td>
+                </tr>
+                <tr>
+                    <td>originalPrice</td>
+                    <td>decimal</td>
+                    <td>商品原价</td>
+                </tr>
+                <tr>
+                    <td>categoryId</td>
+                    <td>int</td>
+                    <td>分类ID</td>
+                </tr>
+                <tr>
+                    <td>categoryName</td>
+                    <td>string</td>
+                    <td>分类名称</td>
+                </tr>
+                <tr>
+                    <td>userId</td>
+                    <td>long</td>
+                    <td>发布用户ID</td>
+                </tr>
+                <tr>
+                    <td>username</td>
+                    <td>string</td>
+                    <td>发布用户名</td>
+                </tr>
+                <tr>
+                    <td>conditionLevel</td>
+                    <td>int</td>
+                    <td>物品成色(1-10级)</td>
+                </tr>
+                <tr>
+                    <td>location</td>
+                    <td>string</td>
+                    <td>商品所在地</td>
+                </tr>
+                <tr>
+                    <td>viewCount</td>
+                    <td>int</td>
+                    <td>浏览次数</td>
+                </tr>
+                <tr>
+                    <td>createdTime</td>
+                    <td>datetime</td>
+                    <td>发布时间</td>
+                </tr>
+                <tr>
+                    <td>mainImageUrl</td>
+                    <td>string</td>
+                    <td>商品主图URL</td>
+                </tr>
+            </table>
+            <p>响应数据模型：</p>
+            <pre>
+// ProductPageVO.java
+public class ProductPageVO {
+    
+    /**
+     * 商品ID
+     */
+    private Long productId;
+    
+    /**
+     * 商品标题
+     */
+    private String title;
+    
+    /**
+     * 商品价格
+     */
+    private BigDecimal price;
+    
+    /**
+     * 物品原价
+     */
+    private BigDecimal originalPrice;
+    
+    /**
+     * 商品分类ID
+     */
+    private Integer categoryId;
+    
+    /**
+     * 商品分类名称
+     */
+    private String categoryName;
+    
+    /**
+     * 发布用户ID
+     */
+    private Long userId;
+    
+    /**
+     * 发布用户名
+     */
+    private String username;
+    
+    /**
+     * 物品成色(1-10级)
+     */
+    private Integer conditionLevel;
+    
+    /**
+     * 商品所在地
+     */
+    private String location;
+    
+    /**
+     * 浏览次数
+     */
+    private Integer viewCount;
+    
+    /**
+     * 发布时间
+     */
+    private LocalDateTime createdTime;
+    
+    /**
+     * 主图URL
+     */
+    private String mainImageUrl;
+}
+
+// PageResult.java
+public class PageResult<T> {
+    
+    /**
+     * 当前页码
+     */
+    private Integer pageNum;
+    
+    /**
+     * 每页大小
+     */
+    private Integer pageSize;
+    
+    /**
+     * 总记录数
+     */
+    private Long total;
+    
+    /**
+     * 总页数
+     */
+    private Integer pages;
+    
+    /**
+     * 当前页数据
+     */
+    private List<T> list;
+    
+    /**
+     * 是否有上一页
+     */
+    private Boolean hasPrevious;
+    
+    /**
+     * 是否有下一页
+     */
+    private Boolean hasNext;
+}
+            </pre>
+            <p>响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "pageNum": 1,
+        "pageSize": 10,
+        "total": 28,
+        "pages": 3,
+        "list": [
+            {
+                "productId": 1,
+                "title": "iPhone 12 Pro 128G 海蓝色",
+                "price": 4299.00,
+                "originalPrice": 6999.00,
+                "categoryId": 3,
+                "categoryName": "手机数码",
+                "userId": 5,
+                "username": "张三",
+                "conditionLevel": 9,
+                "location": "北京市海淀区",
+                "viewCount": 253,
+                "createdTime": "2023-06-01T10:30:00",
+                "mainImageUrl": "https://example.com/images/iphone12_1.jpg"
+            },
+            {
+                "productId": 2,
+                "title": "MacBook Pro 2021 M1芯片",
+                "price": 8999.00,
+                "originalPrice": 12999.00,
+                "categoryId": 3,
+                "categoryName": "手机数码",
+                "userId": 8,
+                "username": "李四",
+                "conditionLevel": 8,
+                "location": "上海市浦东新区",
+                "viewCount": 187,
+                "createdTime": "2023-06-02T14:20:00",
+                "mainImageUrl": "https://example.com/images/macbook_1.jpg"
+            }
+            // ... 更多商品数据
+        ],
+        "hasPrevious": false,
+        "hasNext": true
+    },
+    "message": "success"
+}
+            </pre>
+            <p>错误码说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>错误码</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>0</td>
+                    <td>成功</td>
+                </tr>
+                <tr>
+                    <td>40000</td>
+                    <td>请求参数错误</td>
+                </tr>
+                <tr>
+                    <td>50000</td>
+                    <td>系统内部错误</td>
+                </tr>
+            </table>
+            <p>备注：</p>
+            <ol>
+                <li>分页查询默认返回在售(status=1)的商品</li>
+                <li>如果不指定排序规则，默认按发布时间降序排列（最新发布的商品排在前面）</li>
+                <li>每页最多返回50条数据，超过限制会自动调整为50</li>
+                <li>categoryId对应的分类名称会自动关联查询并返回</li>
+                <li>商品主图(is_main=1)会自动关联查询并返回</li>
+            </ol>
+        </div>
+
+        <div class="api-item">
             <h3>添加商品</h3>
             <p>请求路径：/product/add</p>
             <p>请求方法：POST</p>
@@ -439,6 +913,97 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
         "isMain": 1,
         "sortOrder": 0
     },
+    "message": "success"
+}
+            </pre>
+        </div>
+
+        <div class="api-item">
+            <h3>通过URL添加商品图片</h3>
+            <p>请求路径：/product/image/add-by-url</p>
+            <p>请求方法：POST</p>
+            <p>请求类型：application/json</p>
+            <p>请求数据示例：</p>
+            <pre>
+{
+    "productId": 1,
+    "imageUrl": "https://example.com/images/product1.jpg",
+    "isMain": 1,
+    "sortOrder": 0
+}
+            </pre>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+            </pre>
+            <p>响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "imageId": 1,
+        "productId": 1,
+        "imageUrl": "https://example.com/images/product1.jpg",
+        "isMain": 1,
+        "sortOrder": 0
+    },
+    "message": "success"
+}
+            </pre>
+        </div>
+
+        <div class="api-item">
+            <h3>批量添加商品图片</h3>
+            <p>请求路径：/product/image/add</p>
+            <p>请求方法：POST</p>
+            <p>请求类型：application/json</p>
+            <p>请求数据示例：</p>
+            <pre>
+{
+    "productId": 1,
+    "isMain": 1,
+    "sortOrder": 0,
+    "imageUrls": [
+        "https://example.com/images/product1.jpg",
+        "https://example.com/images/product2.jpg",
+        "https://example.com/images/product3.jpg"
+    ]
+}
+            </pre>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+            </pre>
+            <p>响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": [
+        {
+            "imageId": 1,
+            "productId": 1,
+            "imageUrl": "https://example.com/images/product1.jpg",
+            "isMain": 1,
+            "sortOrder": 0,
+            "createdTime": "2025-04-14 10:30:00"
+        },
+        {
+            "imageId": 2,
+            "productId": 1,
+            "imageUrl": "https://example.com/images/product2.jpg",
+            "isMain": 0,
+            "sortOrder": 1,
+            "createdTime": "2025-04-14 10:30:00"
+        },
+        {
+            "imageId": 3,
+            "productId": 1,
+            "imageUrl": "https://example.com/images/product3.jpg",
+            "isMain": 0,
+            "sortOrder": 2,
+            "createdTime": "2025-04-14 10:30:00"
+        }
+    ],
     "message": "success"
 }
             </pre>
@@ -1037,6 +1602,36 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
             </pre>
         </div>
         
+    </div>
+
+    <!-- 文件上传模块 -->
+    <div class="api-section">
+        <h2>文件上传模块</h2>
+
+        <div class="api-item">
+            <h3>通用文件上传</h3>
+            <p>请求路径：/file/upload</p>
+            <p>请求方法：POST</p>
+            <p>请求类型：multipart/form-data</p>
+            <p>请求参数：</p>
+            <pre>
+file: 要上传的文件（form-data类型）
+            </pre>
+            <p>支持的文件类型：jpg, jpeg, png, gif, pdf, doc, docx, xls, xlsx, ppt, pptx, txt, zip, rar</p>
+            <p>响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "fileName": "example.jpg",
+        "fileUrl": "http://localhost:8080/files/a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6.jpg",
+        "fileSize": "123456",
+        "fileType": "image/jpeg"
+    },
+    "message": "success"
+}
+            </pre>
+        </div>
     </div>
 
 </body>

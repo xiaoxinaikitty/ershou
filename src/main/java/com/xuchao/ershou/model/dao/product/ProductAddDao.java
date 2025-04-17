@@ -4,6 +4,7 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * 添加商品的数据传输对象
@@ -55,4 +56,15 @@ public class ProductAddDao {
      */
     @Size(max = 200, message = "商品所在地最多200个字符")
     private String location;
+    
+    /**
+     * 商品图片URL列表
+     */
+    private List<String> imageUrls;
+    
+    /**
+     * 主图URL索引（对应imageUrls中的索引）
+     * 默认第一张图为主图
+     */
+    private Integer mainImageIndex = 0;
 }
