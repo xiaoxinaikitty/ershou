@@ -235,6 +235,161 @@
         <h2>商品模块</h2>
 
         <div class="api-item">
+            <h3>添加发布商品位置</h3>
+            <p>接口描述：添加发布商品时选择的位置信息(省市区)，插入到数据库中，并返回插入记录的ID</p>
+            <p>请求路径：/product/location/add</p>
+            <p>请求方法：POST</p>
+            <p>请求类型：application/json</p>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
+            </pre>
+            <p>请求数据示例：</p>
+            <pre>
+{
+    "province": "广东省",
+    "city": "深圳市",
+    "district": "南山区"
+}
+            </pre>
+            <p>请求数据模型：</p>
+            <pre>
+// ReleaseLocationDao.java
+public class ReleaseLocationDao {
+    
+    /**
+     * 省份名称
+     */
+    @NotBlank(message = "省份不能为空")
+    private String province;
+    
+    /**
+     * 城市名称
+     */
+    @NotBlank(message = "城市不能为空")
+    private String city;
+    
+    /**
+     * 区/县名称
+     */
+    @NotBlank(message = "区/县不能为空")
+    private String district;
+}
+            </pre>
+            <p>响应参数说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>参数名</th>
+                    <th>类型</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>code</td>
+                    <td>int</td>
+                    <td>状态码，0表示成功</td>
+                </tr>
+                <tr>
+                    <td>message</td>
+                    <td>string</td>
+                    <td>提示信息</td>
+                </tr>
+                <tr>
+                    <td>data</td>
+                    <td>object</td>
+                    <td>返回数据</td>
+                </tr>
+                <tr>
+                    <td>data.id</td>
+                    <td>int</td>
+                    <td>位置记录ID</td>
+                </tr>
+                <tr>
+                    <td>data.province</td>
+                    <td>string</td>
+                    <td>省份名称</td>
+                </tr>
+                <tr>
+                    <td>data.city</td>
+                    <td>string</td>
+                    <td>城市名称</td>
+                </tr>
+                <tr>
+                    <td>data.district</td>
+                    <td>string</td>
+                    <td>区/县名称</td>
+                </tr>
+            </table>
+            <p>响应数据模型：</p>
+            <pre>
+// ReleaseLocationVO.java
+public class ReleaseLocationVO {
+    
+    /**
+     * 位置记录ID
+     */
+    private Integer id;
+    
+    /**
+     * 省份名称
+     */
+    private String province;
+    
+    /**
+     * 城市名称
+     */
+    private String city;
+    
+    /**
+     * 区/县名称
+     */
+    private String district;
+}
+            </pre>
+            <p>响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "id": 1,
+        "province": "广东省",
+        "city": "深圳市",
+        "district": "南山区"
+    },
+    "message": "success"
+}
+            </pre>
+            <p>错误码说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>错误码</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>0</td>
+                    <td>成功</td>
+                </tr>
+                <tr>
+                    <td>40000</td>
+                    <td>请求参数错误</td>
+                </tr>
+                <tr>
+                    <td>40100</td>
+                    <td>未授权</td>
+                </tr>
+                <tr>
+                    <td>50000</td>
+                    <td>系统内部错误</td>
+                </tr>
+            </table>
+            <p>备注：</p>
+            <ol>
+                <li>需要用户登录后访问此接口</li>
+                <li>此接口适用于发布商品时添加商品所在位置信息</li>
+                <li>返回的位置记录ID可用于商品表的location字段</li>
+            </ol>
+        </div>
+
+        <div class="api-item">
             <h3>分页查询商品列表</h3>
             <p>接口描述：分页获取商品列表，支持多种筛选条件和排序方式</p>
             <p>请求路径：/product/list</p>

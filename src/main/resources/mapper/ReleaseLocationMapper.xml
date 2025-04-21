@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuchao.ershou.mapper.ReleaseLocationMapper">
+    
+    <resultMap id="BaseResultMap" type="com.xuchao.ershou.model.entity.ReleaseLocation">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="province" property="province" jdbcType="VARCHAR"/>
+        <result column="city" property="city" jdbcType="VARCHAR"/>
+        <result column="district" property="district" jdbcType="VARCHAR"/>
+    </resultMap>
+    
+    <sql id="Base_Column_List">
+        id, province, city, district
+    </sql>
+    
+    <!-- 插入位置信息 -->
+    <insert id="insertLocation" parameterType="com.xuchao.ershou.model.entity.ReleaseLocation" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO release_location
+        (
+            province, city, district
+        )
+        VALUES
+        (
+            #{province}, #{city}, #{district}
+        )
+    </insert>
+    
+</mapper> 
