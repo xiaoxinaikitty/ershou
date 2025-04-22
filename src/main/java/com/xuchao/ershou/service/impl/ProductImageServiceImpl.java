@@ -39,10 +39,10 @@ public class ProductImageServiceImpl implements ProductImageService {
     @Autowired
     private ProductMapper productMapper;
     
-    @Value("${file.upload.path:/upload/images}")
+    @Value("${file.upload.path}")
     private String uploadPath;
     
-    @Value("${file.upload.url.prefix:http://localhost:8080/images}")
+    @Autowired
     private String urlPrefix;
     
     @Override

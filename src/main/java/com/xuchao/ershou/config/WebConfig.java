@@ -15,7 +15,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     
-    @Value("${file.upload.path:D:/upload/images}")
+    @Value("${file.upload.path}")
     private String uploadPath;
     
     // 通用文件上传目录
