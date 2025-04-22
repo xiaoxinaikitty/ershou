@@ -220,3 +220,11 @@ CREATE TABLE transaction_record (
     INDEX idx_order (order_id),
     INDEX idx_user (user_id)
 ) COMMENT '交易流水表';
+
+-- 发布商品位置表
+CREATE TABLE release_location (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    province VARCHAR(50) NOT NULL,
+    city VARCHAR(50) NOT NULL,
+    district VARCHAR(50) NOT NULL
+);   
