@@ -10,6 +10,8 @@ import com.xuchao.ershou.model.entity.Product;
 import com.xuchao.ershou.model.entity.ProductImage;
 import com.xuchao.ershou.model.vo.ProductImageVO;
 import com.xuchao.ershou.service.ProductImageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,12 +28,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 商品图片服务实现类
  */
 @Service
 public class ProductImageServiceImpl implements ProductImageService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProductImageServiceImpl.class);
 
     @Autowired
     private ProductImageMapper productImageMapper;
@@ -306,8 +311,16 @@ public class ProductImageServiceImpl implements ProductImageService {
         }
         
         List<String> imageUrls = productImageAddDao.getImageUrls();
-        if (imageUrls == null || imageUrls.isEmpty()) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片URL列表不能为空");
+        // 添加日志
+        logger.info("批量添加商品图片，用户ID: {}, 商品ID: {}, 图片URL列表: {}", 
+                  userId, productImageAddDao.getProductId(), imageUrls);
+        
+        // DTO的getImageUrls()方法已经处理了imageUrl到imageUrls的转换
+        // 此时imageUrls如果为空，说明没有提供任何有效的图片URL
+        if (imageUrls.isEmpty()) {
+            logger.error("图片URL列表为空，用户ID: {}, 商品ID: {}", 
+                       userId, productImageAddDao.getProductId());
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请提供至少一个有效的图片URL");
         }
         
         Long productId = productImageAddDao.getProductId();
@@ -327,15 +340,16 @@ public class ProductImageServiceImpl implements ProductImageService {
         List<ProductImageVO> results = new ArrayList<>();
         boolean hasSetMainImage = false;
         
-        for (int i = 0; i < imageUrls.size(); i++) {
-            String imageUrl = imageUrls.get(i);
+        // DTO已经过滤了无效的URL，并且如果imageUrl有值但imageUrls为空，则会被自动添加到imageUrls中
+        List<String> validImageUrls = productImageAddDao.getImageUrls();
+        logger.info("开始处理图片URL列表，有效URL数量: {}", validImageUrls.size());
+        
+        for (int i = 0; i < validImageUrls.size(); i++) {
+            String imageUrl = validImageUrls.get(i);
             
-            if (imageUrl == null || imageUrl.trim().isEmpty()) {
-                continue; // 跳过空URL
-            }
-            
-            // 简单校验URL格式
+            // URL格式校验已经在DTO的getImageUrls()中过滤过空值和null，此处只需校验URL格式
             if (!isValidImageUrl(imageUrl)) {
+                logger.warn("跳过无效URL格式: {}", imageUrl);
                 continue; // 跳过无效URL
             }
             

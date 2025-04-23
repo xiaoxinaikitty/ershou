@@ -10,6 +10,8 @@ import com.xuchao.ershou.model.dao.product.ProductImageAddDao;
 import com.xuchao.ershou.model.vo.ProductImageVO;
 import com.xuchao.ershou.service.ProductImageService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.ArrayList;
 
 /**
  * 商品图片控制器
@@ -30,6 +33,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/product/image")
 public class ProductImageController {
+    
+    private static final Logger logger = LoggerFactory.getLogger(ProductImageController.class);
     
     @Autowired
     private ProductImageService productImageService;
@@ -196,9 +201,25 @@ public class ProductImageController {
             @RequestBody @Valid ProductImageAddDao productImageAddDao,
             @RequestHeader(value = "Authorization", required = false) String authorization) {
             
-        // 检查图片URL列表
-        if (productImageAddDao == null || productImageAddDao.getImageUrls() == null || productImageAddDao.getImageUrls().isEmpty()) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片URL列表不能为空");
+        // 添加调试日志
+        logger.info("收到批量添加商品图片请求，请求数据: {}", productImageAddDao);
+        if (productImageAddDao != null) {
+            logger.info("productId: {}, imageUrl: {}, imageUrls: {}", 
+                productImageAddDao.getProductId(), 
+                productImageAddDao.getImageUrl(),
+                productImageAddDao.getImageUrls());
+        }
+        
+        // 检查商品ID
+        if (productImageAddDao == null || productImageAddDao.getProductId() == null) {
+            logger.error("商品ID为空");
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "商品ID不能为空");
+        }
+        
+        // 检查图片URL列表是否为空 (DTO中的getImageUrls()已经处理了从imageUrl到imageUrls的转换)
+        if (productImageAddDao.getImageUrls().isEmpty()) {
+            logger.error("图片URL列表为空，且没有提供单张图片URL, productId: {}", productImageAddDao.getProductId());
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请提供至少一个有效的图片URL");
         }
         
         Long userId = null;
