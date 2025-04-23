@@ -21,4 +21,12 @@ public class ResultUtils {
     public static <T> BaseResponse<T> error(ErrorCode errorCode) {
         return error(errorCode.getCode(), errorCode.getMessage());
     }
+    
+    public static <T> BaseResponse<T> error(int code, String message, T data) {
+        BaseResponse<T> response = new BaseResponse<>();
+        response.setCode(code);
+        response.setMessage(message);
+        response.setData(data);
+        return response;
+    }
 }

@@ -218,13 +218,13 @@ public class ProductServiceImpl implements ProductService {
         
         // 如果没有记录，直接返回空结果
         if (total == 0) {
-            return PageResult.build(queryParams.getPageNum(), queryParams.getPageSize(), 0L, List.of());
+            return new PageResult<>(queryParams.getPageNum(), queryParams.getPageSize(), 0L, List.of());
         }
         
         // 查询当前页数据
         List<ProductPageVO> productList = productMapper.selectProductPage(queryParams, offset, limit);
         
         // 构建并返回分页结果
-        return PageResult.build(queryParams.getPageNum(), queryParams.getPageSize(), total, productList);
+        return new PageResult<>(queryParams.getPageNum(), queryParams.getPageSize(), total, productList);
     }
 }

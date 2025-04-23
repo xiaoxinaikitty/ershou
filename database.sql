@@ -227,4 +227,42 @@ CREATE TABLE release_location (
     province VARCHAR(50) NOT NULL,
     city VARCHAR(50) NOT NULL,
     district VARCHAR(50) NOT NULL
-);   
+);
+
+-- 钱包账户表
+CREATE TABLE `wallet_account` (
+                                  `account_id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '钱包账户ID（唯一主键）',
+                                  `user_id` bigint unsigned NOT NULL COMMENT '所属用户ID，关联user表的user_id',
+                                  `balance` decimal(12,2) DEFAULT '0.00' COMMENT '钱包余额',
+                                  `frozen_balance` decimal(12,2) DEFAULT '0.00' COMMENT '冻结余额，如在交易处理中被冻结的金额',
+                                  `last_update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
+                                  PRIMARY KEY (`account_id`),
+                                  UNIQUE KEY `uniq_user` (`user_id`),
+                                  CONSTRAINT `fk_wallet_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='钱包账户表';
+
+-- 钱包交易记录表
+CREATE TABLE `wallet_transaction` (
+                                      `transaction_id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '交易ID（唯一主键）',
+                                      `account_id` bigint unsigned NOT NULL COMMENT '钱包账户ID，关联wallet_account表的account_id',
+                                      `transaction_type` tinyint NOT NULL COMMENT '交易类型(1充值 2消费 3退款 4其他)',
+                                      `transaction_amount` decimal(12,2) NOT NULL COMMENT '交易金额',
+                                      `before_balance` decimal(12,2) NOT NULL COMMENT '交易前余额',
+                                      `after_balance` decimal(12,2) NOT NULL COMMENT '交易后余额',
+                                      `transaction_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '交易时间',
+                                      `remark` varchar(255) DEFAULT NULL COMMENT '交易备注',
+                                      PRIMARY KEY (`transaction_id`),
+                                      KEY `idx_account` (`account_id`),
+                                      CONSTRAINT `fk_wallet_transaction_account` FOREIGN KEY (`account_id`) REFERENCES `wallet_account` (`account_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='钱包交易记录表';
+
+-- 支付密码表
+CREATE TABLE `payment_password` (
+                                    `password_id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '支付密码记录ID（唯一主键）',
+                                    `user_id` bigint unsigned NOT NULL COMMENT '所属用户ID，关联user表的user_id',
+                                    `hashed_payment_password` varchar(255) NOT NULL COMMENT '经过加密处理后的支付密码，使用如bcrypt、argon2等算法加密',
+                                    `last_update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新支付密码的时间',
+                                    PRIMARY KEY (`password_id`),
+                                    UNIQUE KEY `uniq_user` (`user_id`),
+                                    CONSTRAINT `fk_payment_password_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='存储用户支付密码信息的表';
