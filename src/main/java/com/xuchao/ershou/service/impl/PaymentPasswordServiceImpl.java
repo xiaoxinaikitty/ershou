@@ -3,14 +3,18 @@ package com.xuchao.ershou.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.xuchao.ershou.common.ErrorCode;
+import com.xuchao.ershou.common.constant.RedisConstants;
 import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.mapper.PaymentPasswordMapper;
 import com.xuchao.ershou.mapper.UserMapper;
+import com.xuchao.ershou.model.dao.wallet.ResetPaymentPasswordDao;
 import com.xuchao.ershou.model.dto.PaymentPasswordDTO;
 import com.xuchao.ershou.model.dto.ResetPasswordDTO;
+import com.xuchao.ershou.model.dto.SmsVerifyDTO;
 import com.xuchao.ershou.model.entity.PaymentPassword;
 import com.xuchao.ershou.model.entity.User;
 import com.xuchao.ershou.service.PaymentPasswordService;
+import com.xuchao.ershou.service.SmsService;
 import com.xuchao.ershou.service.VerificationCodeService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +23,7 @@ import org.springframework.util.StringUtils;
 
 import jakarta.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * 支付密码Service实现类
@@ -30,7 +35,13 @@ public class PaymentPasswordServiceImpl extends ServiceImpl<PaymentPasswordMappe
     private UserMapper userMapper;
 
     @Resource
+    private PaymentPasswordMapper paymentPasswordMapper;
+
+    @Resource
     private BCryptPasswordEncoder passwordEncoder;
+    
+    @Resource
+    private SmsService smsService;
     
     @Resource
     private VerificationCodeService verificationCodeService;
@@ -192,5 +203,49 @@ public class PaymentPasswordServiceImpl extends ServiceImpl<PaymentPasswordMappe
             this.save(newPassword);
             return newPassword;
         }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public boolean resetPaymentPassword(ResetPaymentPasswordDao resetPasswordDao) {
+        // 1. 参数校验
+        if (!Objects.equals(resetPasswordDao.getNewPaymentPassword(), resetPasswordDao.getConfirmPaymentPassword())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的支付密码不一致");
+        }
+
+        // 2. 验证验证码
+        SmsVerifyDTO smsVerifyDTO = new SmsVerifyDTO();
+        smsVerifyDTO.setPhoneNumber(resetPasswordDao.getPhoneNumber());
+        smsVerifyDTO.setCode(resetPasswordDao.getCode());
+        smsVerifyDTO.setBusinessType(RedisConstants.BUSINESS_TYPE_PAYMENT_PASSWORD);
+        
+        boolean verifyResult = smsService.verifyCode(smsVerifyDTO);
+        if (!verifyResult) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码错误或已过期");
+        }
+        
+        // 3. 根据手机号查找用户
+        User user = userMapper.getUserByPhone(resetPasswordDao.getPhoneNumber());
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "未找到绑定该手机号的用户");
+        }
+        
+        // 4. 更新或创建支付密码
+        PaymentPassword paymentPassword = getPaymentPasswordByUserId(user.getUserId());
+        if (paymentPassword == null) {
+            // 创建新支付密码
+            paymentPassword = new PaymentPassword();
+            paymentPassword.setUserId(user.getUserId());
+            paymentPassword.setHashedPaymentPassword(resetPasswordDao.getNewPaymentPassword()); // 生产环境应该加密
+            paymentPassword.setLastUpdateTime(LocalDateTime.now());
+            paymentPasswordMapper.insert(paymentPassword);
+        } else {
+            // 更新已有支付密码
+            paymentPassword.setHashedPaymentPassword(resetPasswordDao.getNewPaymentPassword()); // 生产环境应该加密
+            paymentPassword.setLastUpdateTime(LocalDateTime.now());
+            paymentPasswordMapper.updateById(paymentPassword);
+        }
+        
+        return true;
     }
 } 

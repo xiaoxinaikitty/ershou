@@ -8,12 +8,16 @@ import com.xuchao.ershou.model.dao.user.UserChangePasswordDao;
 import com.xuchao.ershou.model.dao.user.UserRoleUpdateDao;
 import com.xuchao.ershou.model.dao.user.UserUnbanDao;
 import com.xuchao.ershou.model.dao.user.UserUpdateDao;
+import com.xuchao.ershou.model.dao.user.UserResetPasswordDao;
 import com.xuchao.ershou.model.entity.User;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.model.dao.user.UserAddressDao;
 import com.xuchao.ershou.model.entity.UserAddress;
 import com.xuchao.ershou.model.vo.UserRoleVO;
 import com.xuchao.ershou.service.UserService;
+import com.xuchao.ershou.service.SmsService;
+import com.xuchao.ershou.model.dto.SmsVerifyDTO;
+import com.xuchao.ershou.common.constant.RedisConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.xuchao.ershou.common.ErrorCode;
@@ -26,6 +30,9 @@ import java.util.Objects;
 public class UserServiceImpl implements UserService {
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private SmsService smsService;
 
     // 系统管理员角色常量
     private static final String ADMIN_ROLE = "系统管理员";
@@ -316,6 +323,37 @@ public class UserServiceImpl implements UserService {
         
         // 5. 执行更新操作
         int result = userMapper.update(null, updateWrapper);
+        
+        return result > 0;
+    }
+
+    @Override
+    public boolean resetPassword(UserResetPasswordDao resetPasswordDao) {
+        // 1. 参数校验
+        if (!Objects.equals(resetPasswordDao.getNewPassword(), resetPasswordDao.getConfirmPassword())) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次输入的新密码不一致");
+        }
+        
+        // 2. 验证验证码
+        SmsVerifyDTO smsVerifyDTO = new SmsVerifyDTO();
+        smsVerifyDTO.setPhoneNumber(resetPasswordDao.getPhoneNumber());
+        smsVerifyDTO.setCode(resetPasswordDao.getCode());
+        smsVerifyDTO.setBusinessType(RedisConstants.BUSINESS_TYPE_FORGET_PASSWORD);
+        
+        boolean verifyResult = smsService.verifyCode(smsVerifyDTO);
+        if (!verifyResult) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "验证码错误或已过期");
+        }
+        
+        // 3. 根据手机号查找用户
+        User user = userMapper.getUserByPhone(resetPasswordDao.getPhoneNumber());
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND, "未找到绑定该手机号的用户");
+        }
+        
+        // 4. 更新密码
+        user.setPassword(resetPasswordDao.getNewPassword());
+        int result = userMapper.updateById(user);
         
         return result > 0;
     }

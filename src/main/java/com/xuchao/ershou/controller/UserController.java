@@ -1,5 +1,6 @@
 package com.xuchao.ershou.controller;
 
+import com.xuchao.ershou.common.ApiResponse;
 import com.xuchao.ershou.common.BaseResponse;
 import com.xuchao.ershou.common.CurrentUserUtils;
 import com.xuchao.ershou.common.ResultUtils;
@@ -10,6 +11,7 @@ import com.xuchao.ershou.model.dao.user.UserLoginDao;
 import com.xuchao.ershou.model.dao.user.UserRegisterDao;
 import com.xuchao.ershou.model.dao.user.UserAdminDao;
 import com.xuchao.ershou.model.dao.user.UserAddressDao;
+import com.xuchao.ershou.model.dao.user.UserResetPasswordDao;
 import com.xuchao.ershou.model.dao.user.UserRoleUpdateDao;
 import com.xuchao.ershou.model.dao.user.UserUnbanDao;
 import com.xuchao.ershou.model.dao.user.UserUpdateDao;
@@ -239,6 +241,19 @@ public class UserController {
             return ResultUtils.success("用户解封成功");
         } else {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "用户解封失败");
+        }
+    }
+
+    /**
+     * 通过验证码重置密码
+     */
+    @PostMapping("/user/resetPassword")
+    public ApiResponse<Boolean> resetPassword(@RequestBody @Valid UserResetPasswordDao resetPasswordDao) {
+        boolean result = userService.resetPassword(resetPasswordDao);
+        if (result) {
+            return ApiResponse.success("密码重置成功", true);
+        } else {
+            return ApiResponse.error(500, "密码重置失败");
         }
     }
 }

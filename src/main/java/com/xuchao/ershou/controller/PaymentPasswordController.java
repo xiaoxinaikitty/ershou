@@ -1,9 +1,11 @@
 package com.xuchao.ershou.controller;
 
+import com.xuchao.ershou.common.ApiResponse;
 import com.xuchao.ershou.common.BaseResponse;
 import com.xuchao.ershou.common.ErrorCode;
 import com.xuchao.ershou.common.ResultUtils;
 import com.xuchao.ershou.exception.BusinessException;
+import com.xuchao.ershou.model.dao.wallet.ResetPaymentPasswordDao;
 import com.xuchao.ershou.model.dto.PaymentPasswordDTO;
 import com.xuchao.ershou.model.dto.ResetPasswordDTO;
 import com.xuchao.ershou.model.dto.VerifyPasswordDTO;
@@ -187,6 +189,28 @@ public class PaymentPasswordController {
             return ResultUtils.error(e.getCode(), e.getMessage());
         } catch (Exception e) {
             return ResultUtils.error(ErrorCode.SYSTEM_ERROR.getCode(), "系统错误：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 通过手机验证码重置支付密码
+     *
+     * @param resetPaymentPasswordDao 重置支付密码DAO
+     * @return 重置结果
+     */
+    @PostMapping("/reset-by-sms")
+    public ApiResponse<Boolean> resetPaymentPasswordBySms(@RequestBody @Valid ResetPaymentPasswordDao resetPaymentPasswordDao) {
+        try {
+            boolean result = paymentPasswordService.resetPaymentPassword(resetPaymentPasswordDao);
+            if (result) {
+                return ApiResponse.success("支付密码重置成功", true);
+            } else {
+                return ApiResponse.error(500, "支付密码重置失败");
+            }
+        } catch (BusinessException e) {
+            return ApiResponse.error(e.getCode(), e.getMessage());
+        } catch (Exception e) {
+            return ApiResponse.error(ErrorCode.SYSTEM_ERROR.getCode(), "系统错误：" + e.getMessage());
         }
     }
 } 

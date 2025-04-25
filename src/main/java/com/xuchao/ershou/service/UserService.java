@@ -5,6 +5,7 @@ import com.xuchao.ershou.model.dao.user.UserAdminDao;
 import com.xuchao.ershou.model.dao.user.UserBanDao;
 import com.xuchao.ershou.model.dao.user.UserChangePasswordDao;
 import com.xuchao.ershou.model.dao.user.UserLoginDao;
+import com.xuchao.ershou.model.dao.user.UserResetPasswordDao;
 import com.xuchao.ershou.model.dao.user.UserRoleUpdateDao;
 import com.xuchao.ershou.model.dao.user.UserUnbanDao;
 import com.xuchao.ershou.model.dao.user.UserUpdateDao;
@@ -74,4 +75,11 @@ public interface UserService {
      * @return 是否解封成功
      */
     boolean unbanUser(Long currentUserId, UserUnbanDao userUnbanDao);
+
+    /**
+     * 通过手机验证码重置密码
+     * @param resetPasswordDao 重置密码信息
+     * @return 是否重置成功
+     */
+    boolean resetPassword(UserResetPasswordDao resetPasswordDao);
 }

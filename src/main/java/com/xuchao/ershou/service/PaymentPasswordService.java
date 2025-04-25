@@ -1,5 +1,6 @@
 package com.xuchao.ershou.service;
 
+import com.xuchao.ershou.model.dao.wallet.ResetPaymentPasswordDao;
 import com.xuchao.ershou.model.dto.PaymentPasswordDTO;
 import com.xuchao.ershou.model.dto.ResetPasswordDTO;
 import com.xuchao.ershou.model.entity.PaymentPassword;
@@ -37,8 +38,16 @@ public interface PaymentPasswordService {
     /**
      * 通过验证码重置支付密码
      *
-     * @param resetPasswordDTO 重置密码DTO
+     * @param resetPasswordDTO 通过验证码重置密码DTO
      * @return 重置结果
      */
     PaymentPassword resetPaymentPassword(ResetPasswordDTO resetPasswordDTO);
+    
+    /**
+     * 通过验证码重置支付密码
+     *
+     * @param resetPaymentPasswordDao 重置支付密码DAO
+     * @return 重置结果
+     */
+    boolean resetPaymentPassword(ResetPaymentPasswordDao resetPaymentPasswordDao);
 } 

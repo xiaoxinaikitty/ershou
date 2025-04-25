@@ -2357,6 +2357,529 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9...
         </div>
     </div>
 
-// ... existing code ...
+    <!-- 测试接口模块 -->
+    <div class="api-section">
+        <h2>测试接口模块</h2>
+
+        <div class="api-item">
+            <h3>健康检查接口</h3>
+            <p>接口描述：检查服务器是否正常运行，可用于监控系统健康状态</p>
+            <p>请求路径：/api/health</p>
+            <p>请求方法：GET</p>
+            <p>请求示例：</p>
+            <pre>
+GET /api/health
+            </pre>
+            <p>响应参数说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>参数名</th>
+                    <th>类型</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>status</td>
+                    <td>string</td>
+                    <td>服务状态，"UP"表示正常运行</td>
+                </tr>
+                <tr>
+                    <td>timestamp</td>
+                    <td>datetime</td>
+                    <td>当前服务器时间</td>
+                </tr>
+                <tr>
+                    <td>version</td>
+                    <td>string</td>
+                    <td>应用程序版本号</td>
+                </tr>
+            </table>
+            <p>响应示例：</p>
+            <pre>
+{
+    "status": "UP",
+    "timestamp": "2023-08-01T14:30:15.123Z",
+    "version": "1.0.0"
+}
+            </pre>
+            <p>错误码说明：此接口不返回错误码，如果服务不可用则无法访问</p>
+            <p>备注：</p>
+            <ol>
+                <li>此接口无需授权即可访问</li>
+                <li>可用于监控系统、负载均衡器等检查服务是否正常</li>
+                <li>响应时间可作为服务性能指标参考</li>
+            </ol>
+        </div>
+
+        <div class="api-item">
+            <h3>数据库连接测试</h3>
+            <p>接口描述：测试应用与数据库的连接是否正常</p>
+            <p>请求路径：/api/test/db-connection</p>
+            <p>请求方法：GET</p>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9... (管理员权限)
+            </pre>
+            <p>请求示例：</p>
+            <pre>
+GET /api/test/db-connection
+            </pre>
+            <p>响应参数说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>参数名</th>
+                    <th>类型</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>code</td>
+                    <td>int</td>
+                    <td>状态码，0表示成功</td>
+                </tr>
+                <tr>
+                    <td>message</td>
+                    <td>string</td>
+                    <td>提示信息</td>
+                </tr>
+                <tr>
+                    <td>data</td>
+                    <td>object</td>
+                    <td>数据库连接信息</td>
+                </tr>
+                <tr>
+                    <td>data.connected</td>
+                    <td>boolean</td>
+                    <td>是否连接成功</td>
+                </tr>
+                <tr>
+                    <td>data.responseTime</td>
+                    <td>long</td>
+                    <td>响应时间(毫秒)</td>
+                </tr>
+                <tr>
+                    <td>data.databaseInfo</td>
+                    <td>string</td>
+                    <td>数据库版本信息</td>
+                </tr>
+            </table>
+            <p>响应示例(成功)：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "connected": true,
+        "responseTime": 5,
+        "databaseInfo": "MySQL 8.0.28"
+    },
+    "message": "success"
+}
+            </pre>
+            <p>响应示例(失败)：</p>
+            <pre>
+{
+    "code": 50002,
+    "message": "数据库连接失败",
+    "data": {
+        "connected": false,
+        "responseTime": null,
+        "databaseInfo": null
+    }
+}
+            </pre>
+            <p>错误码说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>错误码</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>0</td>
+                    <td>成功</td>
+                </tr>
+                <tr>
+                    <td>40100</td>
+                    <td>未授权或权限不足</td>
+                </tr>
+                <tr>
+                    <td>50002</td>
+                    <td>数据库连接失败</td>
+                </tr>
+            </table>
+            <p>备注：</p>
+            <ol>
+                <li>此接口仅供系统管理员使用，需要管理员权限</li>
+                <li>用于诊断系统与数据库连接相关的问题</li>
+                <li>responseTime字段可用于监控数据库响应时间</li>
+            </ol>
+        </div>
+
+        <div class="api-item">
+            <h3>Redis连接测试</h3>
+            <p>接口描述：测试应用与Redis缓存服务的连接是否正常</p>
+            <p>请求路径：/api/test/redis-connection</p>
+            <p>请求方法：GET</p>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9... (管理员权限)
+            </pre>
+            <p>请求示例：</p>
+            <pre>
+GET /api/test/redis-connection
+            </pre>
+            <p>响应参数说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>参数名</th>
+                    <th>类型</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>code</td>
+                    <td>int</td>
+                    <td>状态码，0表示成功</td>
+                </tr>
+                <tr>
+                    <td>message</td>
+                    <td>string</td>
+                    <td>提示信息</td>
+                </tr>
+                <tr>
+                    <td>data</td>
+                    <td>object</td>
+                    <td>Redis连接信息</td>
+                </tr>
+                <tr>
+                    <td>data.connected</td>
+                    <td>boolean</td>
+                    <td>是否连接成功</td>
+                </tr>
+                <tr>
+                    <td>data.responseTime</td>
+                    <td>long</td>
+                    <td>响应时间(毫秒)</td>
+                </tr>
+                <tr>
+                    <td>data.redisInfo</td>
+                    <td>string</td>
+                    <td>Redis版本信息</td>
+                </tr>
+            </table>
+            <p>响应示例(成功)：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "connected": true,
+        "responseTime": 2,
+        "redisInfo": "Redis 6.2.6"
+    },
+    "message": "success"
+}
+            </pre>
+            <p>响应示例(失败)：</p>
+            <pre>
+{
+    "code": 50003,
+    "message": "Redis连接失败",
+    "data": {
+        "connected": false,
+        "responseTime": null,
+        "redisInfo": null
+    }
+}
+            </pre>
+            <p>错误码说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>错误码</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>0</td>
+                    <td>成功</td>
+                </tr>
+                <tr>
+                    <td>40100</td>
+                    <td>未授权或权限不足</td>
+                </tr>
+                <tr>
+                    <td>50003</td>
+                    <td>Redis连接失败</td>
+                </tr>
+            </table>
+            <p>备注：</p>
+            <ol>
+                <li>此接口仅供系统管理员使用，需要管理员权限</li>
+                <li>用于诊断系统与Redis缓存服务连接相关的问题</li>
+                <li>可用于监控Redis服务的可用性和响应时间</li>
+            </ol>
+        </div>
+
+        <div class="api-item">
+            <h3>短信服务测试</h3>
+            <p>接口描述：测试短信服务功能是否正常</p>
+            <p>请求路径：/api/test/sms</p>
+            <p>请求方法：POST</p>
+            <p>请求类型：application/json</p>
+            <p>请求头：</p>
+            <pre>
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9... (管理员权限)
+            </pre>
+            <p>请求数据示例：</p>
+            <pre>
+{
+    "phoneNumber": "13800138000",
+    "messageType": "TEST"
+}
+            </pre>
+            <p>请求数据模型：</p>
+            <pre>
+// TestSmsDto.java
+public class TestSmsDto {
+    
+    /**
+     * 测试用手机号
+     */
+    @NotBlank(message = "手机号不能为空")
+    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
+    private String phoneNumber;
+    
+    /**
+     * 短信类型，固定为TEST
+     */
+    private String messageType = "TEST";
+}
+            </pre>
+            <p>响应参数说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>参数名</th>
+                    <th>类型</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>code</td>
+                    <td>int</td>
+                    <td>状态码，0表示成功</td>
+                </tr>
+                <tr>
+                    <td>message</td>
+                    <td>string</td>
+                    <td>提示信息</td>
+                </tr>
+                <tr>
+                    <td>data</td>
+                    <td>object</td>
+                    <td>短信发送结果</td>
+                </tr>
+                <tr>
+                    <td>data.sent</td>
+                    <td>boolean</td>
+                    <td>是否发送成功</td>
+                </tr>
+                <tr>
+                    <td>data.messageId</td>
+                    <td>string</td>
+                    <td>短信服务商返回的消息ID</td>
+                </tr>
+                <tr>
+                    <td>data.provider</td>
+                    <td>string</td>
+                    <td>短信服务提供商</td>
+                </tr>
+                <tr>
+                    <td>data.responseTime</td>
+                    <td>long</td>
+                    <td>响应时间(毫秒)</td>
+                </tr>
+            </table>
+            <p>响应示例(成功)：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "sent": true,
+        "messageId": "SMS_123456789",
+        "provider": "Aliyun",
+        "responseTime": 320
+    },
+    "message": "success"
+}
+            </pre>
+            <p>响应示例(失败)：</p>
+            <pre>
+{
+    "code": 50004,
+    "message": "短信服务调用失败",
+    "data": {
+        "sent": false,
+        "messageId": null,
+        "provider": "Aliyun",
+        "responseTime": null
+    }
+}
+            </pre>
+            <p>错误码说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>错误码</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>0</td>
+                    <td>成功</td>
+                </tr>
+                <tr>
+                    <td>40000</td>
+                    <td>请求参数错误</td>
+                </tr>
+                <tr>
+                    <td>40100</td>
+                    <td>未授权或权限不足</td>
+                </tr>
+                <tr>
+                    <td>50004</td>
+                    <td>短信服务调用失败</td>
+                </tr>
+            </table>
+            <p>备注：</p>
+            <ol>
+                <li>此接口仅供系统管理员使用，需要管理员权限</li>
+                <li>用于测试短信服务的连通性和功能</li>
+                <li>测试短信会发送固定的测试内容到指定手机号</li>
+                <li>此接口不计入用户的短信发送配额</li>
+            </ol>
+        </div>
+
+        <div class="api-item">
+            <h3>系统运行状态</h3>
+            <p>接口描述：获取系统各组件的运行状态和性能数据</p>
+            <p>请求路径：/api/system/status</p>
+            <p>请求方法：GET</p>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiJ9... (管理员权限)
+            </pre>
+            <p>请求示例：</p>
+            <pre>
+GET /api/system/status
+            </pre>
+            <p>响应参数说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>参数名</th>
+                    <th>类型</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>code</td>
+                    <td>int</td>
+                    <td>状态码，0表示成功</td>
+                </tr>
+                <tr>
+                    <td>message</td>
+                    <td>string</td>
+                    <td>提示信息</td>
+                </tr>
+                <tr>
+                    <td>data</td>
+                    <td>object</td>
+                    <td>系统状态信息</td>
+                </tr>
+                <tr>
+                    <td>data.serverTime</td>
+                    <td>datetime</td>
+                    <td>服务器当前时间</td>
+                </tr>
+                <tr>
+                    <td>data.jvmInfo</td>
+                    <td>object</td>
+                    <td>JVM相关信息</td>
+                </tr>
+                <tr>
+                    <td>data.memoryUsage</td>
+                    <td>object</td>
+                    <td>内存使用情况</td>
+                </tr>
+                <tr>
+                    <td>data.diskUsage</td>
+                    <td>object</td>
+                    <td>磁盘使用情况</td>
+                </tr>
+                <tr>
+                    <td>data.activeThreads</td>
+                    <td>int</td>
+                    <td>当前活跃线程数</td>
+                </tr>
+                <tr>
+                    <td>data.dbConnections</td>
+                    <td>int</td>
+                    <td>数据库连接数</td>
+                </tr>
+                <tr>
+                    <td>data.uptime</td>
+                    <td>string</td>
+                    <td>系统运行时间</td>
+                </tr>
+            </table>
+            <p>响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "serverTime": "2023-08-01T15:30:45.123Z",
+        "jvmInfo": {
+            "version": "11.0.11",
+            "vendor": "Oracle Corporation",
+            "vmName": "Java HotSpot(TM) 64-Bit Server VM"
+        },
+        "memoryUsage": {
+            "total": 4294967296,
+            "used": 1073741824,
+            "free": 3221225472,
+            "usagePercentage": 25.0
+        },
+        "diskUsage": {
+            "total": 107374182400,
+            "used": 32212254720,
+            "free": 75161927680,
+            "usagePercentage": 30.0
+        },
+        "activeThreads": 25,
+        "dbConnections": 10,
+        "uptime": "3 days, 12 hours, 5 minutes"
+    },
+    "message": "success"
+}
+            </pre>
+            <p>错误码说明：</p>
+            <table border="1" cellspacing="0" cellpadding="5" style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <th>错误码</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>0</td>
+                    <td>成功</td>
+                </tr>
+                <tr>
+                    <td>40100</td>
+                    <td>未授权或权限不足</td>
+                </tr>
+                <tr>
+                    <td>50000</td>
+                    <td>系统内部错误</td>
+                </tr>
+            </table>
+            <p>备注：</p>
+            <ol>
+                <li>此接口仅供系统管理员使用，需要管理员权限</li>
+                <li>提供系统运行时的关键性能指标和状态信息</li>
+                <li>可用于监控系统健康状况和性能瓶颈</li>
+                <li>内存和磁盘使用量单位为字节(Byte)</li>
+            </ol>
+        </div>
+    </div>
+
 </body>
 </html>

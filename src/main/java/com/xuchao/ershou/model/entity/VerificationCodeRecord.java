@@ -1,45 +1,58 @@
 package com.xuchao.ershou.model.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
+import lombok.experimental.Accessors;
+
 import java.time.LocalDateTime;
 
 /**
  * 验证码记录实体类
  */
 @Data
+@Accessors(chain = true)
+@TableName("verification_code_record")
 public class VerificationCodeRecord {
     /**
-     * 记录ID（唯一主键）
+     * 记录ID
      */
+    @TableId(type = IdType.AUTO)
     private Long id;
     
     /**
-     * 接收验证码的手机号码
+     * 手机号码
      */
     private String phoneNumber;
     
     /**
-     * 发送的验证码，一般为6位数字
+     * 验证码
      */
     private String verificationCode;
     
     /**
-     * 验证码发送时间
+     * 业务类型
+     */
+    private String businessType;
+    
+    /**
+     * 发送时间
      */
     private LocalDateTime sendTime;
     
     /**
-     * 验证码过期时间
+     * 过期时间
      */
     private LocalDateTime expirationTime;
     
     /**
-     * 验证码是否已使用，0表示未使用，1表示已使用
+     * 是否已使用
      */
     private Boolean isUsed;
     
     /**
-     * 验证码验证尝试次数
+     * 尝试次数
      */
     private Integer attemptCount;
 } 
