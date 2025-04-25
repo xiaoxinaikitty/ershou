@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuchao.ershou.mapper.VerificationCodeMapper">
+    
+    <!-- 插入新的验证码记录 -->
+    <insert id="insertVerificationCode" parameterType="com.xuchao.ershou.model.entity.VerificationCodeRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO verification_code_record (
+            phone_number, 
+            verification_code, 
+            send_time, 
+            expiration_time, 
+            is_used, 
+            attempt_count
+        ) VALUES (
+            #{phoneNumber}, 
+            #{verificationCode}, 
+            #{sendTime}, 
+            #{expirationTime}, 
+            #{isUsed}, 
+            #{attemptCount}
+        )
+    </insert>
+    
+    <!-- 获取最新的未使用验证码记录 -->
+    <select id="getLatestValidCode" resultType="com.xuchao.ershou.model.entity.VerificationCodeRecord">
+        SELECT 
+            id,
+            phone_number as phoneNumber,
+            verification_code as verificationCode,
+            send_time as sendTime,
+            expiration_time as expirationTime,
+            is_used as isUsed,
+            attempt_count as attemptCount
+        FROM 
+            verification_code_record
+        WHERE 
+            phone_number = #{phoneNumber}
+        ORDER BY 
+            send_time DESC
+        LIMIT 1
+    </select>
+    
+    <!-- 更新验证码为已使用状态 -->
+    <update id="updateCodeUsedStatus">
+        UPDATE 
+            verification_code_record
+        SET 
+            is_used = 1
+        WHERE 
+            id = #{id}
+    </update>
+    
+    <!-- 增加验证尝试次数 -->
+    <update id="incrementAttemptCount">
+        UPDATE 
+            verification_code_record
+        SET 
+            attempt_count = attempt_count + 1
+        WHERE 
+            id = #{id}
+    </update>
+    
+    <!-- 插入验证历史记录 -->
+    <insert id="insertVerificationHistory" parameterType="com.xuchao.ershou.model.entity.VerificationHistory" useGeneratedKeys="true" keyProperty="historyId">
+        INSERT INTO verification_code_verification_history (
+            phone_number, 
+            verification_code, 
+            verification_result, 
+            verification_time, 
+            related_record_id
+        ) VALUES (
+            #{phoneNumber}, 
+            #{verificationCode}, 
+            #{verificationResult}, 
+            #{verificationTime}, 
+            #{relatedRecordId}
+        )
+    </insert>
+</mapper> 

@@ -266,3 +266,29 @@ CREATE TABLE `payment_password` (
                                     UNIQUE KEY `uniq_user` (`user_id`),
                                     CONSTRAINT `fk_payment_password_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='存储用户支付密码信息的表';
+
+-- 验证码记录表
+CREATE TABLE `verification_code_record` (
+                                            `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '记录ID（唯一主键）',
+                                            `phone_number` varchar(20) NOT NULL COMMENT '接收验证码的手机号码',
+                                            `verification_code` varchar(6) NOT NULL COMMENT '发送的验证码，一般为6位数字',
+                                            `send_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '验证码发送时间',
+                                            `expiration_time` datetime NOT NULL COMMENT '验证码过期时间，根据业务设定合理的过期时长',
+                                            `is_used` tinyint(1) NOT NULL DEFAULT 0 COMMENT '验证码是否已使用，0表示未使用，1表示已使用',
+                                            `attempt_count` int NOT NULL DEFAULT 0 COMMENT '验证码验证尝试次数',
+                                            PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='存储手机验证码发送记录的表';
+
+-- 验证码验证历史表
+CREATE TABLE `verification_code_verification_history` (
+                                                          `history_id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '验证历史记录ID（唯一主键）',
+                                                          `phone_number` varchar(20) NOT NULL COMMENT '进行验证码验证的手机号码',
+                                                          `verification_code` varchar(6) NOT NULL COMMENT '用于验证的验证码',
+                                                          `verification_result` tinyint(1) NOT NULL COMMENT '验证结果，0表示验证失败，1表示验证成功',
+                                                          `verification_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '验证码验证时间',
+                                                          `related_record_id` bigint unsigned COMMENT '关联的验证码记录表中的id，方便追溯原始验证码发送记录',
+                                                          PRIMARY KEY (`history_id`),
+                                                          KEY `idx_phone_number` (`phone_number`),
+                                                          KEY `idx_related_record_id` (`related_record_id`),
+                                                          CONSTRAINT `fk_verification_history_record` FOREIGN KEY (`related_record_id`) REFERENCES `verification_code_record` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='存储手机验证码验证历史记录的表';

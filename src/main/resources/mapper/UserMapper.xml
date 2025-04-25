@@ -19,11 +19,23 @@
         INSERT INTO user (
             username,
             password,
+            phone,
+            email,
+            role,
+            avatar,
+            balance,
+            is_locked,
             create_time
         ) VALUES (
             #{username},
             #{password},
-            CURRENT_TIMESTAMP
+            #{phone},
+            #{email},
+            #{role},
+            #{avatar},
+            #{balance},
+            #{isLocked},
+            #{createTime}
         )
     </insert>
 
@@ -85,4 +97,38 @@
             #{isDefault}
         )
     </insert>
+    
+    <!-- 根据用户ID查询用户信息 -->
+    <select id="getUserById" resultMap="BaseResultMap">
+        SELECT 
+            user_id,
+            username,
+            password,
+            role,
+            phone,
+            email,
+            avatar,
+            balance,
+            is_locked,
+            create_time
+        FROM user 
+        WHERE user_id = #{userId}
+    </select>
+    
+    <!-- 根据手机号查询用户信息 -->
+    <select id="getUserByPhone" resultMap="BaseResultMap">
+        SELECT 
+            user_id,
+            username,
+            password,
+            role,
+            phone,
+            email,
+            avatar,
+            balance,
+            is_locked,
+            create_time
+        FROM user 
+        WHERE phone = #{phone}
+    </select>
 </mapper>
