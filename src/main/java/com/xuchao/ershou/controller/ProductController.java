@@ -6,6 +6,7 @@ import com.xuchao.ershou.common.ResultUtils;
 import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.model.dao.product.ProductAddDao;
 import com.xuchao.ershou.model.dao.product.ProductPageQueryDao;
+import com.xuchao.ershou.model.dao.product.ProductSearchDao;
 import com.xuchao.ershou.model.dao.product.ProductUpdateDao;
 import com.xuchao.ershou.model.entity.Product;
 import com.xuchao.ershou.model.vo.PageResult;
@@ -115,5 +116,53 @@ public class ProductController {
         PageResult<ProductPageVO> pageResult = productService.pageProducts(queryParams);
         
         return ResultUtils.success(pageResult);
+    }
+    
+    /**
+     * 用户发布商品列表
+     * @param queryParams 查询参数
+     * @return 分页结果
+     */
+    @GetMapping("/my-list")
+    public BaseResponse<PageResult<ProductPageVO>> listMyProducts(ProductPageQueryDao queryParams) {
+        // 获取当前登录用户ID
+        Long currentUserId = CurrentUserUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        // 设置查询条件为当前用户ID
+        queryParams.setSellerId(currentUserId);
+        
+        // 调用服务层分页查询商品
+        PageResult<ProductPageVO> pageResult = productService.pageProducts(queryParams);
+        
+        return ResultUtils.success(pageResult);
+    }
+    
+    /**
+     * 搜索商品（根据标题和描述搜索）
+     * @param searchParams 搜索参数
+     * @return 分页结果
+     */
+    @GetMapping("/search")
+    public BaseResponse<PageResult<ProductPageVO>> searchProducts(ProductSearchDao searchParams) {
+        // 调用服务层搜索商品
+        PageResult<ProductPageVO> pageResult = productService.searchProducts(searchParams);
+        
+        return ResultUtils.success(pageResult);
+    }
+    
+    /**
+     * 获取商品总数
+     * @param status 商品状态(0下架 1在售 2已售)，可为null，表示获取所有状态的商品数量
+     * @return 商品总数
+     */
+    @GetMapping("/count")
+    public BaseResponse<Long> getProductCount(@RequestParam(required = false) Integer status) {
+        // 调用服务层获取商品总数
+        long count = productService.getProductCount(status);
+        
+        return ResultUtils.success(count);
     }
 }

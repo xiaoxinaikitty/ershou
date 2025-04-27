@@ -28,6 +28,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,7 +50,13 @@ public class UserController {
         
         User user = new User()
             .setUsername(registerDao.getUsername())
-            .setPassword(registerDao.getPassword());
+            .setPassword(registerDao.getPassword())
+            .setPhone(registerDao.getPhone())
+            .setEmail(registerDao.getEmail())
+            .setRole("普通用户")
+            .setBalance(new BigDecimal("0"))
+            .setIsLocked(false)
+            .setCreateTime(LocalDateTime.now());
         userService.insertUser(user);
         return ResultUtils.success("注册成功");
     }

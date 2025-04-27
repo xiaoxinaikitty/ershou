@@ -4,6 +4,7 @@ import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.mapper.ProductMapper;
 import com.xuchao.ershou.model.dao.product.ProductAddDao;
 import com.xuchao.ershou.model.dao.product.ProductPageQueryDao;
+import com.xuchao.ershou.model.dao.product.ProductSearchDao;
 import com.xuchao.ershou.model.dao.product.ProductUpdateDao;
 import com.xuchao.ershou.model.entity.Product;
 import com.xuchao.ershou.model.vo.PageResult;
@@ -226,5 +227,57 @@ public class ProductServiceImpl implements ProductService {
         
         // 构建并返回分页结果
         return new PageResult<>(queryParams.getPageNum(), queryParams.getPageSize(), total, productList);
+    }
+    
+    @Override
+    public PageResult<ProductPageVO> searchProducts(ProductSearchDao searchParams) {
+        // 参数校验
+        if (searchParams == null) {
+            searchParams = new ProductSearchDao();
+        }
+        
+        // 确保页码和每页大小有效
+        if (searchParams.getPageNum() == null || searchParams.getPageNum() < 1) {
+            searchParams.setPageNum(1);
+        }
+        
+        if (searchParams.getPageSize() == null || searchParams.getPageSize() < 1) {
+            searchParams.setPageSize(10);
+        }
+        
+        // 限制每页最大数量，防止大量数据查询影响性能
+        if (searchParams.getPageSize() > 50) {
+            searchParams.setPageSize(50);
+        }
+        
+        // 计算分页偏移量
+        int offset = (searchParams.getPageNum() - 1) * searchParams.getPageSize();
+        int limit = searchParams.getPageSize();
+        
+        // 查询符合条件的总记录数
+        long total = productMapper.countSearchProducts(searchParams);
+        
+        // 如果没有记录，直接返回空结果
+        if (total == 0) {
+            return new PageResult<>(searchParams.getPageNum(), searchParams.getPageSize(), 0L, List.of());
+        }
+        
+        // 查询当前页数据
+        List<ProductPageVO> productList = productMapper.searchProducts(searchParams, offset, limit);
+        
+        // 构建并返回分页结果
+        return new PageResult<>(searchParams.getPageNum(), searchParams.getPageSize(), total, productList);
+    }
+    
+    @Override
+    public long getProductCount(Integer status) {
+        // 创建查询参数对象
+        ProductPageQueryDao queryParams = new ProductPageQueryDao();
+        
+        // 设置商品状态筛选条件
+        queryParams.setStatus(status);
+        
+        // 通过Mapper查询总数并返回
+        return productMapper.countProducts(queryParams);
     }
 }

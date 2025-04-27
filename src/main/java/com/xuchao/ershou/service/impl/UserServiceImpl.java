@@ -22,9 +22,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.xuchao.ershou.common.ErrorCode;
 import org.springframework.util.StringUtils;
+import com.xuchao.ershou.model.dao.user.UserPageQueryDao;
+import com.xuchao.ershou.model.vo.PageResult;
+import com.xuchao.ershou.model.vo.UserPageVO;
+import org.springframework.beans.BeanUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.time.ZoneId;
+import java.util.Date;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -356,5 +364,112 @@ public class UserServiceImpl implements UserService {
         int result = userMapper.updateById(user);
         
         return result > 0;
+    }
+
+    @Override
+    public PageResult<UserPageVO> pageUsers(UserPageQueryDao queryParams) {
+        // 参数默认值处理
+        if (queryParams.getPageNum() == null || queryParams.getPageNum() < 1) {
+            queryParams.setPageNum(1);
+        }
+        if (queryParams.getPageSize() == null || queryParams.getPageSize() < 1) {
+            queryParams.setPageSize(10);
+        }
+        // 限制每页最大条数
+        if (queryParams.getPageSize() > 50) {
+            queryParams.setPageSize(50);
+        }
+        
+        // 查询总记录数
+        Long total = userMapper.countUsers(queryParams);
+        
+        // 如果没有记录，直接返回空列表
+        if (total == 0) {
+            return new PageResult<>(queryParams.getPageNum(), queryParams.getPageSize(), 0, new ArrayList<>());
+        }
+        
+        // 查询用户列表
+        List<User> userList = userMapper.listUsers(queryParams);
+        List<UserPageVO> userPageVOList = new ArrayList<>();
+        
+        // 转换为VO对象
+        for (User user : userList) {
+            UserPageVO userPageVO = new UserPageVO();
+            BeanUtils.copyProperties(user, userPageVO);
+            
+            // 设置状态文本
+            boolean isLocked = user.getIsLocked() != null && user.getIsLocked();
+            userPageVO.setStatusText(isLocked ? "禁用" : "正常");
+            userPageVO.setStatus(isLocked ? 0 : 1);
+            
+            // 敏感信息脱敏
+            if (StringUtils.hasText(user.getPhone())) {
+                userPageVO.setPhone(maskPhoneNumber(user.getPhone()));
+            }
+            if (StringUtils.hasText(user.getEmail())) {
+                userPageVO.setEmail(maskEmail(user.getEmail()));
+            }
+            
+            // 设置注册时间
+            if (user.getCreateTime() != null) {
+                Date registerTime = Date.from(user.getCreateTime().atZone(ZoneId.systemDefault()).toInstant());
+                userPageVO.setRegisterTime(registerTime);
+            } else {
+                userPageVO.setRegisterTime(null);
+            }
+            
+            // 最后登录时间暂不可用
+            userPageVO.setLastLoginTime(null);
+            
+            // TODO: 查询用户发布的商品数量
+            userPageVO.setProductCount(0);
+            
+            // TODO: 查询用户的订单数量
+            userPageVO.setOrderCount(0);
+            
+            userPageVOList.add(userPageVO);
+        }
+        
+        // 构造分页结果并返回
+        return new PageResult<>(queryParams.getPageNum(), queryParams.getPageSize(), total, userPageVOList);
+    }
+    
+    @Override
+    public Long countAllUsers() {
+        return userMapper.countAllUsers();
+    }
+    
+    @Override
+    public Long countUsersByLockState(boolean isLocked) {
+        return userMapper.countUsersByLockState(isLocked);
+    }
+    
+    @Override
+    public Long countUsersByRole(String role) {
+        return userMapper.countUsersByRole(role);
+    }
+    
+    /**
+     * 手机号脱敏
+     */
+    private String maskPhoneNumber(String phone) {
+        if (phone == null || phone.length() != 11) {
+            return phone;
+        }
+        return phone.substring(0, 3) + "****" + phone.substring(7);
+    }
+    
+    /**
+     * 邮箱脱敏
+     */
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            return email;
+        }
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 2) {
+            return email;
+        }
+        return email.substring(0, 2) + "****" + email.substring(atIndex);
     }
 }

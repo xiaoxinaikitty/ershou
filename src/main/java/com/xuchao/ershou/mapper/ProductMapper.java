@@ -2,6 +2,7 @@ package com.xuchao.ershou.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.xuchao.ershou.model.dao.product.ProductPageQueryDao;
+import com.xuchao.ershou.model.dao.product.ProductSearchDao;
 import com.xuchao.ershou.model.entity.Product;
 import com.xuchao.ershou.model.vo.ProductPageVO;
 import org.apache.ibatis.annotations.Param;
@@ -52,4 +53,23 @@ public interface ProductMapper extends BaseMapper<Product> {
      * @return 符合条件的商品总数
      */
     long countProducts(@Param("query") ProductPageQueryDao queryParams);
+    
+    /**
+     * 搜索商品列表（根据标题和描述搜索）
+     * @param searchParams 搜索参数
+     * @param offset 偏移量
+     * @param limit 限制数量
+     * @return 商品列表
+     */
+    List<ProductPageVO> searchProducts(
+            @Param("search") ProductSearchDao searchParams,
+            @Param("offset") int offset,
+            @Param("limit") int limit);
+            
+    /**
+     * 统计搜索结果的商品总数
+     * @param searchParams 搜索参数
+     * @return 符合搜索条件的商品总数
+     */
+    long countSearchProducts(@Param("search") ProductSearchDao searchParams);
 }

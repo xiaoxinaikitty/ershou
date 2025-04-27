@@ -9,9 +9,12 @@ import com.xuchao.ershou.model.dao.user.UserResetPasswordDao;
 import com.xuchao.ershou.model.dao.user.UserRoleUpdateDao;
 import com.xuchao.ershou.model.dao.user.UserUnbanDao;
 import com.xuchao.ershou.model.dao.user.UserUpdateDao;
+import com.xuchao.ershou.model.dao.user.UserPageQueryDao;
 import com.xuchao.ershou.model.entity.User;
 import com.xuchao.ershou.model.entity.UserAddress;
 import com.xuchao.ershou.model.vo.UserRoleVO;
+import com.xuchao.ershou.model.vo.PageResult;
+import com.xuchao.ershou.model.vo.UserPageVO;
 
 public interface UserService {
     int insertUser(User user);
@@ -82,4 +85,31 @@ public interface UserService {
      * @return 是否重置成功
      */
     boolean resetPassword(UserResetPasswordDao resetPasswordDao);
+
+    /**
+     * 分页查询用户列表
+     * @param queryParams 查询参数
+     * @return 分页结果
+     */
+    PageResult<UserPageVO> pageUsers(UserPageQueryDao queryParams);
+    
+    /**
+     * 统计所有用户数量
+     * @return 用户总数
+     */
+    Long countAllUsers();
+    
+    /**
+     * 根据锁定状态统计用户数量
+     * @param isLocked 是否被锁定
+     * @return 符合条件的用户数量
+     */
+    Long countUsersByLockState(boolean isLocked);
+    
+    /**
+     * 根据角色统计用户数量
+     * @param role 角色名称
+     * @return 符合条件的用户数量
+     */
+    Long countUsersByRole(String role);
 }

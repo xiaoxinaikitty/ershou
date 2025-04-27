@@ -191,4 +191,105 @@
         FROM product p
         <include refid="Query_Condition" />
     </select>
+    
+    <!-- 搜索商品条件 -->
+    <sql id="Search_Condition">
+        <where>
+            <if test="search.status != null">
+                AND p.status = #{search.status}
+            </if>
+            <if test="search.keyword != null and search.keyword != ''">
+                AND (
+                    p.title LIKE CONCAT('%', #{search.keyword}, '%')
+                    OR p.description LIKE CONCAT('%', #{search.keyword}, '%')
+                )
+            </if>
+            <if test="search.categoryId != null">
+                AND p.category_id = #{search.categoryId}
+            </if>
+            <if test="search.minPrice != null">
+                AND p.price >= #{search.minPrice}
+            </if>
+            <if test="search.maxPrice != null">
+                AND p.price &lt;= #{search.maxPrice}
+            </if>
+            <if test="search.minConditionLevel != null">
+                AND p.condition_level >= #{search.minConditionLevel}
+            </if>
+            <if test="search.location != null and search.location != ''">
+                AND p.location LIKE CONCAT('%', #{search.location}, '%')
+            </if>
+        </where>
+    </sql>
+    
+    <!-- 搜索排序条件 -->
+    <sql id="Search_Sort_Condition">
+        <if test="search.sortField == 'price'">
+            <choose>
+                <when test="search.sortOrder == 'asc'">
+                    ORDER BY p.price ASC
+                </when>
+                <otherwise>
+                    ORDER BY p.price DESC
+                </otherwise>
+            </choose>
+        </if>
+        <if test="search.sortField == 'time' or search.sortField == null">
+            <choose>
+                <when test="search.sortOrder == 'asc'">
+                    ORDER BY p.created_time ASC
+                </when>
+                <otherwise>
+                    ORDER BY p.created_time DESC
+                </otherwise>
+            </choose>
+        </if>
+        <if test="search.sortField == 'view'">
+            <choose>
+                <when test="search.sortOrder == 'asc'">
+                    ORDER BY p.view_count ASC
+                </when>
+                <otherwise>
+                    ORDER BY p.view_count DESC
+                </otherwise>
+            </choose>
+        </if>
+    </sql>
+    
+    <!-- 搜索商品列表 -->
+    <select id="searchProducts" resultType="com.xuchao.ershou.model.vo.ProductPageVO">
+        SELECT 
+            p.product_id,
+            p.title,
+            p.price,
+            p.original_price,
+            p.category_id,
+            pc.category_name,
+            p.user_id,
+            u.username,
+            p.condition_level,
+            p.location,
+            p.view_count,
+            p.created_time,
+            COALESCE(
+                (SELECT image_url FROM product_image WHERE product_id = p.product_id AND is_main = 1 LIMIT 1),
+                (SELECT image_url FROM product_image WHERE product_id = p.product_id ORDER BY image_id ASC LIMIT 1)
+            ) as mainImageUrl
+        FROM 
+            product p
+        LEFT JOIN 
+            product_category pc ON p.category_id = pc.category_id
+        LEFT JOIN 
+            user u ON p.user_id = u.user_id
+        <include refid="Search_Condition" />
+        <include refid="Search_Sort_Condition" />
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 统计搜索结果数量 -->
+    <select id="countSearchProducts" resultType="long">
+        SELECT COUNT(1)
+        FROM product p
+        <include refid="Search_Condition" />
+    </select>
 </mapper>

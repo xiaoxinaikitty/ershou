@@ -2,6 +2,7 @@ package com.xuchao.ershou.service;
 
 import com.xuchao.ershou.model.dao.product.ProductAddDao;
 import com.xuchao.ershou.model.dao.product.ProductPageQueryDao;
+import com.xuchao.ershou.model.dao.product.ProductSearchDao;
 import com.xuchao.ershou.model.dao.product.ProductUpdateDao;
 import com.xuchao.ershou.model.entity.Product;
 import com.xuchao.ershou.model.vo.PageResult;
@@ -49,4 +50,18 @@ public interface ProductService {
      * @return 分页结果
      */
     PageResult<ProductPageVO> pageProducts(ProductPageQueryDao queryParams);
+    
+    /**
+     * 搜索商品列表（根据标题和描述搜索）
+     * @param searchParams 搜索参数
+     * @return 分页结果
+     */
+    PageResult<ProductPageVO> searchProducts(ProductSearchDao searchParams);
+    
+    /**
+     * 获取商品总数
+     * @param status 商品状态(0下架 1在售 2已售)，可为null，表示获取所有状态的商品数量
+     * @return 商品总数
+     */
+    long getProductCount(Integer status);
 }

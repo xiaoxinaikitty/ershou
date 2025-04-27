@@ -131,4 +131,98 @@
         FROM user 
         WHERE phone = #{phone}
     </select>
+    
+    <!-- 根据条件分页查询用户列表 -->
+    <select id="listUsers" resultMap="BaseResultMap">
+        SELECT 
+            user_id,
+            username,
+            password,
+            role,
+            phone,
+            email,
+            avatar,
+            balance,
+            is_locked,
+            create_time
+        FROM user 
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    username LIKE CONCAT('%', #{keyword}, '%') 
+                    OR phone LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="status != null">
+                AND is_locked = #{status == 0}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND create_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND create_time &lt;= #{endTime}
+            </if>
+        </where>
+        <choose>
+            <when test="sortField == 'register' and sortOrder == 'asc'">
+                ORDER BY create_time ASC
+            </when>
+            <when test="sortField == 'register' and sortOrder == 'desc'">
+                ORDER BY create_time DESC
+            </when>
+            <when test="sortField == 'login' and sortOrder == 'asc'">
+                ORDER BY create_time ASC
+            </when>
+            <when test="sortField == 'login' and sortOrder == 'desc'">
+                ORDER BY create_time DESC
+            </when>
+            <otherwise>
+                ORDER BY create_time DESC
+            </otherwise>
+        </choose>
+        LIMIT ${(pageNum-1)*pageSize}, #{pageSize}
+    </select>
+    
+    <!-- 根据条件统计用户数量 -->
+    <select id="countUsers" resultType="long">
+        SELECT COUNT(*)
+        FROM user 
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (
+                    username LIKE CONCAT('%', #{keyword}, '%') 
+                    OR phone LIKE CONCAT('%', #{keyword}, '%')
+                )
+            </if>
+            <if test="status != null">
+                AND is_locked = #{status == 0}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND create_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND create_time &lt;= #{endTime}
+            </if>
+        </where>
+    </select>
+    
+    <!-- 统计所有用户数量 -->
+    <select id="countAllUsers" resultType="long">
+        SELECT COUNT(*)
+        FROM user
+    </select>
+    
+    <!-- 根据锁定状态统计用户数量 -->
+    <select id="countUsersByLockState" resultType="long">
+        SELECT COUNT(*)
+        FROM user
+        WHERE is_locked = #{isLocked}
+    </select>
+    
+    <!-- 根据角色统计用户数量 -->
+    <select id="countUsersByRole" resultType="long">
+        SELECT COUNT(*)
+        FROM user
+        WHERE role = #{role}
+    </select>
 </mapper>
