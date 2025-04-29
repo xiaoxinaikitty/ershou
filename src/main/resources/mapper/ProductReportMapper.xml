@@ -56,4 +56,57 @@
         ORDER BY 
             pr.created_time DESC
     </select>
+
+    <!-- 统计举报商品总数 -->
+    <select id="countProductReports" resultType="long">
+        SELECT COUNT(*)
+        FROM product_report
+        <where>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="reportType != null">
+                AND report_type = #{reportType}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND created_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND created_time &lt;= #{endTime}
+            </if>
+        </where>
+    </select>
+
+    <!-- 分页查询举报商品列表 -->
+    <select id="selectProductReports" resultType="com.xuchao.ershou.model.vo.ProductReportVO">
+        SELECT 
+            pr.report_id AS reportId,
+            pr.product_id AS productId,
+            p.title AS productTitle,
+            pr.user_id AS userId,
+            pr.report_type AS reportType,
+            pr.report_content AS reportContent,
+            pr.status AS status,
+            pr.created_time AS createdTime
+        FROM 
+            product_report pr
+        LEFT JOIN 
+            product p ON pr.product_id = p.product_id
+        <where>
+            <if test="status != null">
+                AND pr.status = #{status}
+            </if>
+            <if test="reportType != null">
+                AND pr.report_type = #{reportType}
+            </if>
+            <if test="startTime != null and startTime != ''">
+                AND pr.created_time &gt;= #{startTime}
+            </if>
+            <if test="endTime != null and endTime != ''">
+                AND pr.created_time &lt;= #{endTime}
+            </if>
+        </where>
+        ORDER BY pr.created_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
 </mapper>

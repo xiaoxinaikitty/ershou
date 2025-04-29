@@ -64,4 +64,11 @@ public interface ProductService {
      * @return 商品总数
      */
     long getProductCount(Integer status);
+
+    /**
+     * 获取商品状态
+     * @param productId 商品ID
+     * @return 商品状态
+     */
+    Product getProductStatus(Long productId);
 }

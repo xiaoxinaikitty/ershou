@@ -701,6 +701,104 @@ public class PageResult<T> {
         </div>
 
         <div class="api-item">
+            <h3>获取举报商品列表</h3>
+            <p>接口描述：获取所有被举报的商品列表，支持分页和筛选</p>
+            <p>请求路径：/product/report/all</p>
+            <p>请求方法：GET</p>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer [token]
+            </pre>
+            <p>请求参数说明：</p>
+            <table border="1">
+                <tr>
+                    <th>参数名</th>
+                    <th>类型</th>
+                    <th>必填</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>pageNum</td>
+                    <td>Integer</td>
+                    <td>否</td>
+                    <td>页码，默认1</td>
+                </tr>
+                <tr>
+                    <td>pageSize</td>
+                    <td>Integer</td>
+                    <td>否</td>
+                    <td>每页数量，默认10</td>
+                </tr>
+                <tr>
+                    <td>status</td>
+                    <td>Integer</td>
+                    <td>否</td>
+                    <td>处理状态：0-未处理 1-已处理，不传则查询全部</td>
+                </tr>
+                <tr>
+                    <td>reportType</td>
+                    <td>Integer</td>
+                    <td>否</td>
+                    <td>举报类型：1-虚假商品 2-违禁品 3-侵权 4-其他，不传则查询全部</td>
+                </tr>
+                <tr>
+                    <td>startTime</td>
+                    <td>String</td>
+                    <td>否</td>
+                    <td>开始时间，格式：yyyy-MM-dd HH:mm:ss</td>
+                </tr>
+                <tr>
+                    <td>endTime</td>
+                    <td>String</td>
+                    <td>否</td>
+                    <td>结束时间，格式：yyyy-MM-dd HH:mm:ss</td>
+                </tr>
+            </table>
+            <p>请求示例：</p>
+            <pre>
+GET /product/report/all?pageNum=1&pageSize=10&status=0&reportType=1&startTime=2024-01-01 00:00:00&endTime=2024-12-31 23:59:59
+            </pre>
+            <p>成功响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "pageNum": 1,
+        "pageSize": 10,
+        "total": 100,
+        "pages": 10,
+        "list": [
+            {
+                "productId": 123,
+                "productTitle": "二手iPhone 12",
+                "reportCount": 5,
+                "latestReportTime": "2024-01-01 12:00:00"
+            }
+        ],
+        "hasPrevious": false,
+        "hasNext": true
+    },
+    "message": "success"
+}
+            </pre>
+            <p>失败响应示例：</p>
+            <pre>
+{
+    "code": 40000,
+    "message": "参数错误",
+    "data": null
+}
+            </pre>
+            <p>接口注意事项：</p>
+            <ul>
+                <li>需要管理员权限才能访问</li>
+                <li>时间范围查询时，开始时间不能大于结束时间</li>
+                <li>分页参数pageSize最大值为50</li>
+                <li>返回的商品列表包含商品标题、举报次数、最新举报时间等信息</li>
+            </ul>
+        </div>
+
+        <div class="api-item">
             <h3>添加用户地址</h3>
             <p>请求路径：/user/address</p>
             <p>请求方法：POST</p>
@@ -1210,6 +1308,184 @@ GET /product/count?status=1
                 <li>status=2时，返回已售商品总数</li>
                 <li>status=0时，返回下架商品总数</li>
             </ol>
+        </div>
+
+        <div class="api-item">
+            <h3>举报商品</h3>
+            <p>请求路径：/product/report/add</p>
+            <p>请求方法：POST</p>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer [token]
+            </pre>
+            <p>请求数据示例：</p>
+            <pre>
+{
+    "productId": 123,
+    "reportType": 1,
+    "reportContent": "该商品描述与实物不符，存在虚假宣传"
+}
+            </pre>
+            <p>请求参数说明：</p>
+            <table border="1">
+                <tr>
+                    <th>参数名</th>
+                    <th>类型</th>
+                    <th>必填</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>productId</td>
+                    <td>Long</td>
+                    <td>是</td>
+                    <td>被举报的商品ID</td>
+                </tr>
+                <tr>
+                    <td>reportType</td>
+                    <td>Integer</td>
+                    <td>是</td>
+                    <td>举报类型：1-虚假商品 2-违禁品 3-侵权 4-其他</td>
+                </tr>
+                <tr>
+                    <td>reportContent</td>
+                    <td>String</td>
+                    <td>是</td>
+                    <td>举报内容描述</td>
+                </tr>
+            </table>
+            <p>成功响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": "举报成功，我们会尽快处理",
+    "message": "success"
+}
+            </pre>
+            <p>失败响应示例：</p>
+            <pre>
+{
+    "code": 40000,
+    "message": "商品不存在",
+    "data": null
+}
+            </pre>
+            <pre>
+{
+    "code": 40001,
+    "message": "您已经举报过该商品",
+    "data": null
+}
+            </pre>
+            <p>接口注意事项：</p>
+            <ul>
+                <li>需要用户登录后才能举报</li>
+                <li>同一用户对同一商品只能举报一次</li>
+                <li>举报内容不能为空</li>
+                <li>举报类型必须是1-4之间的整数</li>
+            </ul>
+        </div>
+
+        <div class="api-item">
+            <h3>查询举报信息</h3>
+            <p>请求路径：/product/report/list/{productId}</p>
+            <p>请求方法：GET</p>
+            <p>请求头：</p>
+            <pre>
+Authorization: Bearer [token]
+            </pre>
+            <p>请求参数：</p>
+            <table border="1">
+                <tr>
+                    <th>参数名</th>
+                    <th>类型</th>
+                    <th>必填</th>
+                    <th>说明</th>
+                </tr>
+                <tr>
+                    <td>pageNum</td>
+                    <td>Integer</td>
+                    <td>否</td>
+                    <td>页码，默认1</td>
+                </tr>
+                <tr>
+                    <td>pageSize</td>
+                    <td>Integer</td>
+                    <td>否</td>
+                    <td>每页数量，默认10</td>
+                </tr>
+                <tr>
+                    <td>status</td>
+                    <td>Integer</td>
+                    <td>否</td>
+                    <td>处理状态：0-未处理 1-已处理，不传则查询全部</td>
+                </tr>
+                <tr>
+                    <td>reportType</td>
+                    <td>Integer</td>
+                    <td>否</td>
+                    <td>举报类型：1-虚假商品 2-违禁品 3-侵权 4-其他，不传则查询全部</td>
+                </tr>
+                <tr>
+                    <td>startTime</td>
+                    <td>String</td>
+                    <td>否</td>
+                    <td>开始时间，格式：yyyy-MM-dd HH:mm:ss</td>
+                </tr>
+                <tr>
+                    <td>endTime</td>
+                    <td>String</td>
+                    <td>否</td>
+                    <td>结束时间，格式：yyyy-MM-dd HH:mm:ss</td>
+                </tr>
+            </table>
+            <p>请求示例：</p>
+            <pre>
+GET /product/report/list?pageNum=1&pageSize=10&status=0&reportType=1&startTime=2024-01-01 00:00:00&endTime=2024-12-31 23:59:59
+            </pre>
+            <p>成功响应示例：</p>
+            <pre>
+{
+    "code": 0,
+    "data": {
+        "pageNum": 1,
+        "pageSize": 10,
+        "total": 100,
+        "pages": 10,
+        "list": [
+            {
+                "reportId": 1,
+                "productId": 123,
+                "productTitle": "二手iPhone 12",
+                "userId": 456,
+                "username": "张三",
+                "reportType": 1,
+                "reportTypeDesc": "虚假商品",
+                "reportContent": "该商品描述与实物不符",
+                "status": 0,
+                "statusDesc": "未处理",
+                "createdTime": "2024-01-01 12:00:00",
+                "handleTime": null
+            }
+        ]
+    },
+    "message": "success"
+}
+            </pre>
+            <p>失败响应示例：</p>
+            <pre>
+{
+    "code": 40000,
+    "message": "参数错误",
+    "data": null
+}
+            </pre>
+            <p>接口注意事项：</p>
+            <ul>
+                <li>需要管理员权限才能访问</li>
+                <li>时间范围查询时，开始时间不能大于结束时间</li>
+                <li>分页参数pageSize最大值为50</li>
+                <li>返回的举报信息包含商品标题、举报人信息等关联数据</li>
+            </ul>
         </div>
     </div>
 
@@ -3595,3 +3871,4 @@ public class UserPageVO {
 
 </body>
 </html>
+``` 

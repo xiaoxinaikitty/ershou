@@ -1,6 +1,7 @@
 package com.xuchao.ershou.service;
 
 import com.xuchao.ershou.model.dao.product.ProductReportAddDao;
+import com.xuchao.ershou.model.vo.PageResult;
 import com.xuchao.ershou.model.vo.ProductReportVO;
 
 import java.util.List;
@@ -24,4 +25,16 @@ public interface ProductReportService {
      * @return 举报信息列表
      */
     List<ProductReportVO> getProductReports(Long productId);
+
+    /**
+     * 获取举报商品列表
+     * @param pageNum 页码
+     * @param pageSize 每页数量
+     * @param status 处理状态
+     * @param reportType 举报类型
+     * @param startTime 开始时间
+     * @param endTime 结束时间
+     * @return 举报商品分页列表
+     */
+    PageResult<ProductReportVO> getAllProductReports(Integer pageNum, Integer pageSize, Integer status, Integer reportType, String startTime, String endTime);
 }

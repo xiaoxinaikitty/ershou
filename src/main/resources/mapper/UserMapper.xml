@@ -225,4 +225,11 @@
         FROM user
         WHERE role = #{role}
     </select>
+    
+    <!-- 根据用户ID查询用户角色 -->
+    <select id="selectUserRoleById" resultType="string">
+        SELECT role
+        FROM user
+        WHERE user_id = #{userId}
+    </select>
 </mapper>

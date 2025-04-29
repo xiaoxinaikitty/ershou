@@ -237,6 +237,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public String getUserRoleById(Long userId) {
+        // 假设通过 userMapper 查询用户角色
+        return userMapper.selectUserRoleById(userId);
+    }
+
+    @Override
     public boolean banUser(Long currentUserId, UserBanDao userBanDao) {
         // 1. 检查当前用户是否是管理员
         User currentUser = userMapper.selectById(currentUserId);

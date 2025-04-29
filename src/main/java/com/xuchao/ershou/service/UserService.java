@@ -56,6 +56,13 @@ public interface UserService {
     UserRoleVO getUserRole(Long userId);
     
     /**
+     * 根据用户ID获取用户角色
+     * @param userId 用户ID
+     * @return 用户角色
+     */
+    String getUserRoleById(Long userId);
+    
+    /**
      * 修改用户角色（仅管理员可操作）
      * @param currentUserId 当前操作的用户ID（必须是管理员）
      * @param roleUpdateDao 角色更新信息

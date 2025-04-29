@@ -64,4 +64,11 @@ public interface UserMapper extends BaseMapper<User> {
      * @return 用户数量
      */
     Long countUsersByRole(@Param("role") String role);
+    
+    /**
+     * 根据用户ID查询用户角色
+     * @param userId 用户ID
+     * @return 用户角色
+     */
+    String selectUserRoleById(@Param("userId") Long userId);
 }

@@ -8,6 +8,7 @@ import com.xuchao.ershou.model.dao.product.ProductReportAddDao;
 import com.xuchao.ershou.model.entity.Product;
 import com.xuchao.ershou.model.entity.ProductReport;
 import com.xuchao.ershou.model.vo.ProductReportVO;
+import com.xuchao.ershou.model.vo.PageResult;
 import com.xuchao.ershou.service.ProductReportService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,8 @@ public class ProductReportServiceImpl implements ProductReportService {
     
     @Autowired
     private ProductMapper productMapper;
-      @Override
+    
+    @Override
     @Transactional
     public ProductReportVO addProductReport(Long userId, ProductReportAddDao productReportAddDao) {
         // 参数校验
@@ -100,5 +102,39 @@ public class ProductReportServiceImpl implements ProductReportService {
         List<ProductReportVO> reportVOList = productReportMapper.selectReportsByProductId(productId);
         
         return reportVOList;
+    }
+
+    @Override
+    public PageResult<ProductReportVO> getAllProductReports(Integer pageNum, Integer pageSize, Integer status, Integer reportType, String startTime, String endTime) {
+        // 参数校验
+        if (pageNum == null || pageNum < 1) {
+            pageNum = 1;
+        }
+        if (pageSize == null || pageSize < 1) {
+            pageSize = 10;
+        }
+        if (pageSize > 50) {
+            pageSize = 50;
+        }
+
+        // 时间范围校验
+        if (startTime != null && endTime != null && startTime.compareTo(endTime) > 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "开始时间不能大于结束时间");
+        }
+
+        // 查询总记录数
+        long total = productReportMapper.countProductReports(status, reportType, startTime, endTime);
+        if (total == 0) {
+            return new PageResult<>(pageNum, pageSize, 0L, List.of());
+        }
+
+        // 计算分页偏移量
+        int offset = (pageNum - 1) * pageSize;
+
+        // 查询当前页数据
+        List<ProductReportVO> reportList = productReportMapper.selectProductReports(status, reportType, startTime, endTime, offset, pageSize);
+
+        // 构建分页结果
+        return new PageResult<>(pageNum, pageSize, total, reportList);
     }
 }

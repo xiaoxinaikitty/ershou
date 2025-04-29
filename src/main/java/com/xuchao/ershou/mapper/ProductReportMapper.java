@@ -33,4 +33,26 @@ public interface ProductReportMapper extends BaseMapper<ProductReport> {
      * @return 举报信息列表
      */
     List<ProductReportVO> selectReportsByProductId(@Param("productId") Long productId);
+
+    /**
+     * 查询举报商品总数
+     * @param status 处理状态
+     * @param reportType 举报类型
+     * @param startTime 开始时间
+     * @param endTime 结束时间
+     * @return 总记录数
+     */
+    long countProductReports(@Param("status") Integer status, @Param("reportType") Integer reportType, @Param("startTime") String startTime, @Param("endTime") String endTime);
+
+    /**
+     * 分页查询举报商品列表
+     * @param status 处理状态
+     * @param reportType 举报类型
+     * @param startTime 开始时间
+     * @param endTime 结束时间
+     * @param offset 偏移量
+     * @param limit 每页数量
+     * @return 举报商品列表
+     */
+    List<ProductReportVO> selectProductReports(@Param("status") Integer status, @Param("reportType") Integer reportType, @Param("startTime") String startTime, @Param("endTime") String endTime, @Param("offset") int offset, @Param("limit") int limit);
 }

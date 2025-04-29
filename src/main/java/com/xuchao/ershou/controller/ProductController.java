@@ -83,9 +83,9 @@ public class ProductController {
     }
 
     /**
-     * 删除商品（实际为下架商品）
+     * 下架商品
      * @param productId 商品ID
-     * @return 处理结果
+     * @return 下架结果
      */
     @DeleteMapping("/delete/{productId}")
     public BaseResponse<String> deleteProduct(@PathVariable Long productId) {
@@ -94,14 +94,14 @@ public class ProductController {
         if (currentUserId == null) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
         }
-        
-        // 调用服务层删除商品（将状态设置为下架）
+
+        // 调用服务层下架商品
         boolean result = productService.deleteProduct(currentUserId, productId);
-        
+
         if (result) {
-            return ResultUtils.success("商品删除成功");
+            return ResultUtils.success("商品下架成功");
         } else {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "商品删除失败");
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "商品下架失败");
         }
     }
     
