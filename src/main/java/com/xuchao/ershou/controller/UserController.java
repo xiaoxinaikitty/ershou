@@ -98,6 +98,12 @@ public class UserController {
     public Object addAddress(@RequestBody @Valid UserAddress address) {
         Long currentUserId = CurrentUserUtils.getCurrentUserId();
         address.setUserId(currentUserId);
+
+        // 确保收货人姓名不为空
+        if (address.getConsignee() == null || address.getConsignee().isEmpty()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "收货人姓名不能为空");
+        }
+
         userService.insertUserAddress(address);
         return ResultUtils.success("地址添加成功");
     }
