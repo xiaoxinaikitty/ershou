@@ -30,6 +30,20 @@ CREATE TABLE `user_address` (
   CONSTRAINT `fk_address_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户地址表';
 
+-- 发货地址表
+CREATE TABLE `shipping_address` (
+  `address_id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '地址ID',
+  `user_id` bigint unsigned NOT NULL COMMENT '所属用户ID',
+  `shipper_name` varchar(50) NOT NULL COMMENT '发货人姓名',
+  `region` varchar(100) NOT NULL COMMENT '所在地区',
+  `detail` varchar(200) NOT NULL COMMENT '详细地址',
+  `contact_phone` varchar(20) NOT NULL COMMENT '联系电话',
+  `is_default` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否默认地址（0-否 1-是）',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`address_id`),
+  KEY `idx_user` (`user_id`),
+  CONSTRAINT `fk_shipping_address_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='发货地址表';
 -- 商品信息表
 CREATE TABLE product (
     product_id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '商品ID',
