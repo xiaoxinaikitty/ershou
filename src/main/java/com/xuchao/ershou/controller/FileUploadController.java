@@ -29,20 +29,18 @@ import java.util.UUID;
 @RequestMapping("/file")
 public class FileUploadController {
 
-    // 项目根目录下的文件存储目录
-    private static final String FILE_UPLOAD_PATH = "@files files";
+    // 从配置文件中获取文件上传路径
+    @Value("${file.upload.path}")
+    private String uploadPath;
+    
+    // 从配置文件中获取文件访问URL前缀
+    @Value("${file.upload.url.prefix}")
+    private String fileUrlPrefix;
 
     // 允许的文件类型
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(
             "jpg", "jpeg", "png", "gif", "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "zip", "rar"
     );
-
-    // 访问URL前缀
-    @Value("${server.servlet.context-path:}")
-    private String contextPath;
-
-    @Value("${server.port:8080}")
-    private int serverPort;
 
     /**
      * 通用文件上传接口
@@ -70,20 +68,22 @@ public class FileUploadController {
             String uniqueFileName = UUID.randomUUID().toString() + "." + fileExtension;
 
             // 确保目录存在
-            File uploadDir = new File(FILE_UPLOAD_PATH);
+            File uploadDir = new File(uploadPath);
             if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
+                boolean created = uploadDir.mkdirs();
+                if (!created) {
+                    throw new BusinessException(ErrorCode.SYSTEM_ERROR, "无法创建文件上传目录: " + uploadPath);
+                }
             }
 
             // 构建文件保存路径
-            Path filePath = Paths.get(FILE_UPLOAD_PATH, uniqueFileName);
+            Path filePath = Paths.get(uploadPath, uniqueFileName);
 
             // 保存文件
             Files.copy(file.getInputStream(), filePath);
 
             // 生成文件访问URL
-            String baseUrl = "http://localhost:" + serverPort + contextPath;
-            String fileUrl = baseUrl + "/files/" + uniqueFileName;
+            String fileUrl = fileUrlPrefix + "/" + uniqueFileName;
 
             // 构建返回结果
             Map<String, String> result = new HashMap<>();
