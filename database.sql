@@ -306,3 +306,26 @@ CREATE TABLE `verification_code_verification_history` (
                                                           KEY `idx_related_record_id` (`related_record_id`),
                                                           CONSTRAINT `fk_verification_history_record` FOREIGN KEY (`related_record_id`) REFERENCES `verification_code_record` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='存储手机验证码验证历史记录的表';
+
+-- 用户反馈表
+CREATE TABLE `user_feedback` (
+  `feedback_id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '反馈ID（唯一主键）',
+  `user_id` bigint unsigned NOT NULL COMMENT '用户ID，关联user表的user_id',
+  `feedback_type` tinyint NOT NULL COMMENT '反馈类型(1功能建议 2体验问题 3商品相关 4物流相关 5其他)',
+  `feedback_title` varchar(100) NOT NULL COMMENT '反馈标题',
+  `feedback_content` text NOT NULL COMMENT '反馈内容详情',
+  `contact_info` varchar(100) DEFAULT NULL COMMENT '联系方式（电话或邮箱，可选）',
+  `images` varchar(1000) DEFAULT NULL COMMENT '反馈附带的图片URL，多个URL使用逗号分隔',
+  `status` tinyint NOT NULL DEFAULT 0 COMMENT '处理状态(0未处理 1处理中 2已处理)',
+  `priority_level` tinyint DEFAULT 0 COMMENT '优先级(0普通 1重要 2紧急)',
+  `admin_id` bigint unsigned DEFAULT NULL COMMENT '处理人员ID，关联user表中role为系统管理员的user_id',
+  `admin_reply` text DEFAULT NULL COMMENT '管理员回复内容',
+  `reply_time` datetime DEFAULT NULL COMMENT '回复时间',
+  `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '反馈提交时间',
+  `updated_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '最后更新时间',
+  PRIMARY KEY (`feedback_id`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_status` (`status`),
+  KEY `idx_created_time` (`created_time`),
+  CONSTRAINT `fk_feedback_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户反馈表';

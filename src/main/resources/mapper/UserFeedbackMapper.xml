@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuchao.ershou.mapper.UserFeedbackMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.xuchao.ershou.model.entity.UserFeedback">
+        <id column="feedback_id" property="feedbackId" />
+        <result column="user_id" property="userId" />
+        <result column="feedback_type" property="feedbackType" />
+        <result column="feedback_title" property="feedbackTitle" />
+        <result column="feedback_content" property="feedbackContent" />
+        <result column="contact_info" property="contactInfo" />
+        <result column="images" property="images" />
+        <result column="status" property="status" />
+        <result column="priority_level" property="priorityLevel" />
+        <result column="admin_id" property="adminId" />
+        <result column="admin_reply" property="adminReply" />
+        <result column="reply_time" property="replyTime" />
+        <result column="created_time" property="createdTime" />
+        <result column="updated_time" property="updatedTime" />
+    </resultMap>
+    
+    <!-- 用户反馈VO结果映射 -->
+    <resultMap id="FeedbackVOResultMap" type="com.xuchao.ershou.model.vo.UserFeedbackVO">
+        <id column="feedback_id" property="feedbackId" />
+        <result column="user_id" property="userId" />
+        <result column="username" property="username" />
+        <result column="feedback_type" property="feedbackType" />
+        <result column="feedback_type_desc" property="feedbackTypeDesc" />
+        <result column="feedback_title" property="feedbackTitle" />
+        <result column="feedback_content" property="feedbackContent" />
+        <result column="contact_info" property="contactInfo" />
+        <result column="images" property="images" />
+        <result column="status" property="status" />
+        <result column="status_desc" property="statusDesc" />
+        <result column="priority_level" property="priorityLevel" />
+        <result column="priority_level_desc" property="priorityLevelDesc" />
+        <result column="admin_id" property="adminId" />
+        <result column="admin_reply" property="adminReply" />
+        <result column="reply_time" property="replyTime" />
+        <result column="created_time" property="createdTime" />
+    </resultMap>
+
+    <!-- 分页查询用户反馈列表（管理员用） -->
+    <select id="selectFeedbackList" resultMap="FeedbackVOResultMap">
+        SELECT 
+            f.feedback_id,
+            f.user_id,
+            u.username,
+            f.feedback_type,
+            CASE f.feedback_type
+                WHEN 1 THEN '功能建议'
+                WHEN 2 THEN '体验问题'
+                WHEN 3 THEN '商品相关'
+                WHEN 4 THEN '物流相关'
+                WHEN 5 THEN '其他'
+                ELSE '未知类型'
+            END AS feedback_type_desc,
+            f.feedback_title,
+            f.feedback_content,
+            f.contact_info,
+            f.images,
+            f.status,
+            CASE f.status
+                WHEN 0 THEN '未处理'
+                WHEN 1 THEN '处理中'
+                WHEN 2 THEN '已处理'
+                ELSE '未知状态'
+            END AS status_desc,
+            f.priority_level,
+            CASE f.priority_level
+                WHEN 0 THEN '普通'
+                WHEN 1 THEN '重要'
+                WHEN 2 THEN '紧急'
+                ELSE '未知优先级'
+            END AS priority_level_desc,
+            f.admin_id,
+            f.admin_reply,
+            f.reply_time,
+            f.created_time
+        FROM 
+            user_feedback f
+        LEFT JOIN 
+            user u ON f.user_id = u.user_id
+        <where>
+            <if test="status != null">
+                AND f.status = #{status}
+            </if>
+            <if test="feedbackType != null">
+                AND f.feedback_type = #{feedbackType}
+            </if>
+        </where>
+        ORDER BY 
+            f.priority_level DESC, 
+            f.created_time DESC
+    </select>
+
+    <!-- 分页查询当前用户的反馈列表 -->
+    <select id="selectUserFeedbackList" resultMap="FeedbackVOResultMap">
+        SELECT 
+            f.feedback_id,
+            f.user_id,
+            u.username,
+            f.feedback_type,
+            CASE f.feedback_type
+                WHEN 1 THEN '功能建议'
+                WHEN 2 THEN '体验问题'
+                WHEN 3 THEN '商品相关'
+                WHEN 4 THEN '物流相关'
+                WHEN 5 THEN '其他'
+                ELSE '未知类型'
+            END AS feedback_type_desc,
+            f.feedback_title,
+            f.feedback_content,
+            f.contact_info,
+            f.images,
+            f.status,
+            CASE f.status
+                WHEN 0 THEN '未处理'
+                WHEN 1 THEN '处理中'
+                WHEN 2 THEN '已处理'
+                ELSE '未知状态'
+            END AS status_desc,
+            f.priority_level,
+            CASE f.priority_level
+                WHEN 0 THEN '普通'
+                WHEN 1 THEN '重要'
+                WHEN 2 THEN '紧急'
+                ELSE '未知优先级'
+            END AS priority_level_desc,
+            f.admin_id,
+            f.admin_reply,
+            f.reply_time,
+            f.created_time
+        FROM 
+            user_feedback f
+        LEFT JOIN 
+            user u ON f.user_id = u.user_id
+        WHERE 
+            f.user_id = #{userId}
+            <if test="status != null">
+                AND f.status = #{status}
+            </if>
+        ORDER BY 
+            f.created_time DESC
+    </select>
+
+    <!-- 查询反馈详情 -->
+    <select id="selectFeedbackDetail" resultMap="FeedbackVOResultMap">
+        SELECT 
+            f.feedback_id,
+            f.user_id,
+            u.username,
+            f.feedback_type,
+            CASE f.feedback_type
+                WHEN 1 THEN '功能建议'
+                WHEN 2 THEN '体验问题'
+                WHEN 3 THEN '商品相关'
+                WHEN 4 THEN '物流相关'
+                WHEN 5 THEN '其他'
+                ELSE '未知类型'
+            END AS feedback_type_desc,
+            f.feedback_title,
+            f.feedback_content,
+            f.contact_info,
+            f.images,
+            f.status,
+            CASE f.status
+                WHEN 0 THEN '未处理'
+                WHEN 1 THEN '处理中'
+                WHEN 2 THEN '已处理'
+                ELSE '未知状态'
+            END AS status_desc,
+            f.priority_level,
+            CASE f.priority_level
+                WHEN 0 THEN '普通'
+                WHEN 1 THEN '重要'
+                WHEN 2 THEN '紧急'
+                ELSE '未知优先级'
+            END AS priority_level_desc,
+            f.admin_id,
+            f.admin_reply,
+            f.reply_time,
+            f.created_time
+        FROM 
+            user_feedback f
+        LEFT JOIN 
+            user u ON f.user_id = u.user_id
+        WHERE 
+            f.feedback_id = #{feedbackId}
+    </select>
+</mapper> 
