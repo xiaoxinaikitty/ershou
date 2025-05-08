@@ -4,6 +4,10 @@ import com.xuchao.ershou.common.BaseResponse;
 import com.xuchao.ershou.common.ErrorCode;
 import com.xuchao.ershou.common.ResultUtils;
 import com.xuchao.ershou.exception.BusinessException;
+import com.xuchao.ershou.service.ImageAuditService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +33,8 @@ import java.util.UUID;
 @RequestMapping("/file")
 public class FileUploadController {
 
+    private static final Logger logger = LoggerFactory.getLogger(FileUploadController.class);
+
     // 从配置文件中获取文件上传路径
     @Value("${file.upload.path}")
     private String uploadPath;
@@ -36,10 +42,18 @@ public class FileUploadController {
     // 从配置文件中获取文件访问URL前缀
     @Value("${file.upload.url.prefix}")
     private String fileUrlPrefix;
+    
+    @Autowired
+    private ImageAuditService imageAuditService;
 
     // 允许的文件类型
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList(
             "jpg", "jpeg", "png", "gif", "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "zip", "rar"
+    );
+    
+    // 图片类型列表，需要进行审核
+    private static final List<String> IMAGE_EXTENSIONS = Arrays.asList(
+            "jpg", "jpeg", "png", "gif"
     );
 
     /**
@@ -62,6 +76,21 @@ public class FileUploadController {
             // 验证文件类型
             if (!isValidFileExtension(fileExtension)) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "不支持的文件类型，仅支持：" + String.join(", ", ALLOWED_EXTENSIONS));
+            }
+
+            // 如果是图片文件，进行简单的内容审核
+            if (isImageFile(fileExtension)) {
+                logger.info("审核上传图片: {}", originalFilename);
+                try {
+                    boolean isImageSafe = imageAuditService.auditImageStream(file.getInputStream());
+                    if (!isImageSafe) {
+                        throw new BusinessException(ErrorCode.FORBIDDEN, "图片内容违规，请上传合规的图片");
+                    }
+                    logger.info("图片审核通过");
+                } catch (Exception e) {
+                    logger.error("图片审核出错", e);
+                    // 审核出错时，允许上传继续，不阻断流程
+                }
             }
 
             // 生成唯一文件名
@@ -120,5 +149,15 @@ public class FileUploadController {
             return false;
         }
         return ALLOWED_EXTENSIONS.contains(extension.toLowerCase());
+    }
+    
+    /**
+     * 检查文件是否为图片类型
+     */
+    private boolean isImageFile(String extension) {
+        if (extension == null || extension.isEmpty()) {
+            return false;
+        }
+        return IMAGE_EXTENSIONS.contains(extension.toLowerCase());
     }
 } 

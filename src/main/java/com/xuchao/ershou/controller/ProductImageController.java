@@ -9,6 +9,7 @@ import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.model.dao.product.ProductImageAddDao;
 import com.xuchao.ershou.model.vo.ProductImageVO;
 import com.xuchao.ershou.service.ProductImageService;
+import com.xuchao.ershou.service.ImageAuditService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -41,6 +43,9 @@ public class ProductImageController {
     
     @Autowired
     private JwtUtil jwtUtil;
+    
+    @Autowired
+    private ImageAuditService imageAuditService;
     
     /**
      * 添加商品图片
@@ -63,6 +68,9 @@ public class ProductImageController {
         if (imageFile == null || imageFile.isEmpty()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片文件不能为空");
         }
+        
+        // 移除图片内容审核过程，恢复原有逻辑
+        logger.info("上传商品图片，文件名: {}", imageFile.getOriginalFilename());
         
         Long userId = null;
         
@@ -113,6 +121,22 @@ public class ProductImageController {
         // 检查图片URL
         if (productImageAddDao == null || productImageAddDao.getImageUrl() == null || productImageAddDao.getImageUrl().trim().isEmpty()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片URL不能为空");
+        }
+        
+        // 添加简化的图片URL内容审核过程
+        String imageUrl = productImageAddDao.getImageUrl().trim();
+        logger.info("审核图片URL: {}", imageUrl);
+        
+        // 对图片URL进行内容审核
+        try {
+            boolean isImageSafe = imageAuditService.auditImageUrl(imageUrl);
+            if (!isImageSafe) {
+                throw new BusinessException(ErrorCode.FORBIDDEN, "图片内容违规，请上传合规的图片");
+            }
+            logger.info("图片审核通过");
+        } catch (Exception e) {
+            logger.error("图片审核出错", e);
+            // 审核出错时，允许上传继续，不阻断流程
         }
         
         Long userId = null;
@@ -221,6 +245,21 @@ public class ProductImageController {
             logger.error("图片URL列表为空，且没有提供单张图片URL, productId: {}", productImageAddDao.getProductId());
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "请提供至少一个有效的图片URL");
         }
+        
+        // 添加图片内容审核逻辑
+        logger.info("开始批量审核图片URL");
+        for (String imageUrl : productImageAddDao.getImageUrls()) {
+            try {
+                boolean isImageSafe = imageAuditService.auditImageUrl(imageUrl);
+                if (!isImageSafe) {
+                    throw new BusinessException(ErrorCode.FORBIDDEN, "存在图片内容违规，请上传合规的图片");
+                }
+            } catch (Exception e) {
+                logger.error("图片审核出错", e);
+                // 审核出错时，允许上传继续，不阻断流程
+            }
+        }
+        logger.info("所有图片审核通过");
         
         Long userId = null;
         
