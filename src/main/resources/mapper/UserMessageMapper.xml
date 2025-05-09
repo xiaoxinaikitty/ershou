@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuchao.ershou.mapper.UserMessageMapper">
+    <resultMap id="BaseResultMap" type="com.xuchao.ershou.model.entity.UserMessage">
+        <id column="message_id" property="messageId" jdbcType="BIGINT"/>
+        <result column="product_id" property="productId" jdbcType="BIGINT"/>
+        <result column="sender_id" property="senderId" jdbcType="BIGINT"/>
+        <result column="receiver_id" property="receiverId" jdbcType="BIGINT"/>
+        <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="image_url" property="imageUrl" jdbcType="VARCHAR"/>
+        <result column="is_read" property="isRead" jdbcType="TINYINT"/>
+        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List_With_Prefix">
+        um.message_id, um.product_id, um.sender_id, um.receiver_id, um.content, um.image_url, um.is_read, um.created_time
+    </sql>
+
+    <sql id="Base_Column_List">
+        message_id, product_id, sender_id, receiver_id, content, image_url, is_read, created_time
+    </sql>
+
+    <select id="selectByConversationId" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List_With_Prefix" />
+        FROM user_message um
+        INNER JOIN conversation c ON um.product_id = c.product_id
+        WHERE c.conversation_id = #{conversationId}
+        AND (
+            (um.sender_id = c.user_id AND um.receiver_id = c.seller_id)
+            OR
+            (um.sender_id = c.seller_id AND um.receiver_id = c.user_id)
+        )
+        ORDER BY um.created_time ASC
+    </select>
+
+    <select id="selectByProductAndUser" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM user_message
+        WHERE product_id = #{productId}
+        AND (
+            (sender_id = #{userId} AND receiver_id = #{sellerId})
+            OR
+            (sender_id = #{sellerId} AND receiver_id = #{userId})
+        )
+        ORDER BY created_time ASC
+    </select>
+
+    <select id="selectByReceiverId" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM user_message
+        WHERE receiver_id = #{receiverId}
+        ORDER BY created_time DESC
+    </select>
+
+    <select id="selectBySenderId" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM user_message
+        WHERE sender_id = #{senderId}
+        ORDER BY created_time DESC
+    </select>
+
+    <update id="updateMessageReadStatus">
+        UPDATE user_message
+        SET is_read = 1
+        WHERE message_id = #{messageId}
+    </update>
+
+    <update id="batchUpdateMessageReadStatus">
+        UPDATE user_message
+        SET is_read = 1
+        WHERE message_id IN
+        <foreach collection="messageIds" item="messageId" open="(" separator="," close=")">
+            #{messageId}
+        </foreach>
+    </update>
+
+    <update id="markConversationAsRead">
+        UPDATE user_message
+        SET is_read = 1
+        WHERE product_id = #{productId}
+        AND receiver_id = #{receiverId}
+        AND (
+            (sender_id = #{userId} AND receiver_id = #{sellerId})
+            OR
+            (sender_id = #{sellerId} AND receiver_id = #{userId})
+        )
+        AND is_read = 0
+    </update>
+</mapper> 

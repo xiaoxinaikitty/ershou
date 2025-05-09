@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuchao.ershou.mapper.ConversationMapper">
+    <resultMap id="BaseResultMap" type="com.xuchao.ershou.model.entity.Conversation">
+        <id column="conversation_id" property="conversationId" jdbcType="BIGINT"/>
+        <result column="product_id" property="productId" jdbcType="BIGINT"/>
+        <result column="user_id" property="userId" jdbcType="BIGINT"/>
+        <result column="seller_id" property="sellerId" jdbcType="BIGINT"/>
+        <result column="last_message_content" property="lastMessageContent" jdbcType="VARCHAR"/>
+        <result column="last_message_time" property="lastMessageTime" jdbcType="TIMESTAMP"/>
+        <result column="user_unread_count" property="userUnreadCount" jdbcType="INTEGER"/>
+        <result column="seller_unread_count" property="sellerUnreadCount" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="TINYINT"/>
+        <result column="created_time" property="createdTime" jdbcType="TIMESTAMP"/>
+        <result column="updated_time" property="updatedTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        conversation_id, product_id, user_id, seller_id, last_message_content, 
+        last_message_time, user_unread_count, seller_unread_count, status, 
+        created_time, updated_time
+    </sql>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM conversation
+        WHERE user_id = #{userId}
+        ORDER BY last_message_time DESC
+    </select>
+
+    <select id="selectBySellerId" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM conversation
+        WHERE seller_id = #{sellerId}
+        ORDER BY last_message_time DESC
+    </select>
+
+    <select id="selectByProductAndUser" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List" />
+        FROM conversation
+        WHERE product_id = #{productId} AND user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <update id="updateLastMessage">
+        UPDATE conversation
+        SET last_message_content = #{lastMessageContent},
+            last_message_time = NOW()
+        WHERE conversation_id = #{conversationId}
+    </update>
+
+    <update id="increaseUserUnreadCount">
+        UPDATE conversation
+        SET user_unread_count = user_unread_count + 1
+        WHERE conversation_id = #{conversationId}
+    </update>
+
+    <update id="increaseSellerUnreadCount">
+        UPDATE conversation
+        SET seller_unread_count = seller_unread_count + 1
+        WHERE conversation_id = #{conversationId}
+    </update>
+
+    <update id="resetUserUnreadCount">
+        UPDATE conversation
+        SET user_unread_count = 0
+        WHERE conversation_id = #{conversationId}
+    </update>
+
+    <update id="resetSellerUnreadCount">
+        UPDATE conversation
+        SET seller_unread_count = 0
+        WHERE conversation_id = #{conversationId}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE conversation
+        SET status = #{status}
+        WHERE conversation_id = #{conversationId}
+    </update>
+</mapper> 
