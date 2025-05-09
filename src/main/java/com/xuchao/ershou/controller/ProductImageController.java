@@ -69,8 +69,27 @@ public class ProductImageController {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "图片文件不能为空");
         }
         
-        // 移除图片内容审核过程，恢复原有逻辑
-        logger.info("上传商品图片，文件名: {}", imageFile.getOriginalFilename());
+        // 添加图片内容审核
+        logger.info("上传商品图片，文件名: {}, 大小: {}字节", imageFile.getOriginalFilename(), imageFile.getSize());
+        
+        // 对图片文件进行内容审核
+        try {
+            // 使用图片流进行审核
+            boolean isImageSafe = imageAuditService.auditImageStream(imageFile.getInputStream());
+            if (!isImageSafe) {
+                throw new BusinessException(ErrorCode.FORBIDDEN, "图片内容违规，请上传合规的图片");
+            }
+            logger.info("图片审核通过");
+        } catch (IOException e) {
+            logger.error("读取图片流失败", e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图片上传失败，请重试");
+        } catch (BusinessException e) {
+            // 业务异常直接抛出
+            throw e;
+        } catch (Exception e) {
+            logger.error("图片审核出错", e);
+            // 其他审核出错时，允许上传继续，不阻断流程
+        }
         
         Long userId = null;
         

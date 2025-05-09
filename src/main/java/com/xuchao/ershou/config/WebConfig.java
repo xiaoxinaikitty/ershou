@@ -40,6 +40,10 @@ public class WebConfig implements WebMvcConfigurer {
         // 映射本地文件夹到URL路径，使上传的图片可访问
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("file:" + uploadPath + "/");
+                
+        // 添加/files/**路径的映射，解决前端请求files路径的问题
+        registry.addResourceHandler("/files/**")
+                .addResourceLocations("file:" + uploadPath + "/");
     }
     
     /**

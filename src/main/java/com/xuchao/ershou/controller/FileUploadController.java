@@ -80,16 +80,23 @@ public class FileUploadController {
 
             // 如果是图片文件，进行简单的内容审核
             if (isImageFile(fileExtension)) {
-                logger.info("审核上传图片: {}", originalFilename);
+                logger.info("审核上传图片: {}, 大小: {}字节", originalFilename, file.getSize());
                 try {
                     boolean isImageSafe = imageAuditService.auditImageStream(file.getInputStream());
                     if (!isImageSafe) {
                         throw new BusinessException(ErrorCode.FORBIDDEN, "图片内容违规，请上传合规的图片");
                     }
                     logger.info("图片审核通过");
+                } catch (IOException e) {
+                    logger.error("读取图片流失败", e);
+                    throw new BusinessException(ErrorCode.SYSTEM_ERROR, "图片上传失败，请重试");
+                } catch (BusinessException e) {
+                    // 业务异常直接抛出
+                    throw e;
                 } catch (Exception e) {
-                    logger.error("图片审核出错", e);
+                    logger.error("图片审核出错: {}", e.getMessage(), e);
                     // 审核出错时，允许上传继续，不阻断流程
+                    logger.info("跳过图片审核，继续处理上传");
                 }
             }
 
