@@ -15,6 +15,7 @@ import com.xuchao.ershou.model.vo.OrderVO;
 import com.xuchao.ershou.service.OrderService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import java.util.List;
 /**
  * 订单控制器
  */
+@Slf4j
 @RestController
 @RequestMapping("/order")
 public class OrderController {
@@ -51,19 +53,27 @@ public class OrderController {
         if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
             String token = authorization.substring(7);
             
-            // 2. 验证Token有效性
-            if (!jwtUtil.validateToken(token)) {
-                throw new BusinessException(ErrorCode.UNAUTHORIZED, "无效的token，请重新登录");
+            try {
+                // 2. 验证Token有效性
+                if (!jwtUtil.validateToken(token)) {
+                    log.warn("无效的token: {}", token);
+                    throw new BusinessException(ErrorCode.UNAUTHORIZED, "无效的token，请重新登录");
+                }
+                
+                // 3. 从Token中提取用户ID
+                userId = jwtUtil.getUserIdFromToken(token);
+                log.info("从token中提取到userId: {}", userId);
+            } catch (Exception e) {
+                log.error("JWT令牌验证或解析失败: {}", e.getMessage(), e);
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "Token校验失败，请重新登录");
             }
-            
-            // 3. 从Token中提取用户ID
-            userId = jwtUtil.getUserIdFromToken(token);
         }
         
         // 4. 如果从Token中无法获取用户ID，则尝试从请求上下文中获取
         if (userId == null) {
             userId = CurrentUserUtils.getCurrentUserId();
             if (userId == null) {
+                log.warn("用户未登录，无法创建订单");
                 throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
             }
         }
@@ -89,19 +99,27 @@ public class OrderController {
         if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
             String token = authorization.substring(7);
 
-            // 2. 验证Token有效性
-            if (!jwtUtil.validateToken(token)) {
-                throw new BusinessException(ErrorCode.UNAUTHORIZED, "无效的token，请重新登录");
+            try {
+                // 2. 验证Token有效性
+                if (!jwtUtil.validateToken(token)) {
+                    log.warn("无效的token: {}", token);
+                    throw new BusinessException(ErrorCode.UNAUTHORIZED, "无效的token，请重新登录");
+                }
+                
+                // 3. 从Token中提取用户ID
+                userId = jwtUtil.getUserIdFromToken(token);
+                log.info("从token中提取到userId: {}", userId);
+            } catch (Exception e) {
+                log.error("JWT令牌验证或解析失败: {}", e.getMessage(), e);
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "Token校验失败，请重新登录");
             }
-
-            // 3. 从Token中提取用户ID
-            userId = jwtUtil.getUserIdFromToken(token);
         }
 
         // 4. 如果从Token中无法获取用户ID，则尝试从请求上下文中获取
         if (userId == null) {
             userId = CurrentUserUtils.getCurrentUserId();
             if (userId == null) {
+                log.warn("用户未登录，无法获取订单列表");
                 throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
             }
         }
@@ -129,19 +147,27 @@ public class OrderController {
         if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
             String token = authorization.substring(7);
             
-            // 2. 验证Token有效性
-            if (!jwtUtil.validateToken(token)) {
-                throw new BusinessException(ErrorCode.UNAUTHORIZED, "无效的token，请重新登录");
+            try {
+                // 2. 验证Token有效性
+                if (!jwtUtil.validateToken(token)) {
+                    log.warn("无效的token: {}", token);
+                    throw new BusinessException(ErrorCode.UNAUTHORIZED, "无效的token，请重新登录");
+                }
+                
+                // 3. 从Token中提取用户ID
+                userId = jwtUtil.getUserIdFromToken(token);
+                log.info("从token中提取到userId: {}", userId);
+            } catch (Exception e) {
+                log.error("JWT令牌验证或解析失败: {}", e.getMessage(), e);
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "Token校验失败，请重新登录");
             }
-            
-            // 3. 从Token中提取用户ID
-            userId = jwtUtil.getUserIdFromToken(token);
         }
         
         // 4. 如果从Token中无法获取用户ID，则尝试从请求上下文中获取
         if (userId == null) {
             userId = CurrentUserUtils.getCurrentUserId();
             if (userId == null) {
+                log.warn("用户未登录，无法取消订单");
                 throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
             }
         }
@@ -156,47 +182,92 @@ public class OrderController {
     public BaseResponse<OrderVO> payOrder(@RequestBody OrderPayRequest request, HttpServletRequest httpServletRequest) {
         String token = httpServletRequest.getHeader("Authorization");
         if (token == null || !token.startsWith("Bearer ")) {
+            log.warn("支付订单失败：用户未登录");
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
         
-        // 验证当前用户
-        Long currentUserId = jwtUtil.getUserIdFromToken(token.substring(7));
-        if (!currentUserId.equals(request.getUserId())) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        try {
+            // 验证当前用户
+            Long currentUserId = jwtUtil.getUserIdFromToken(token.substring(7));
+            if (currentUserId == null) {
+                log.warn("支付订单失败：无法从token中获取用户ID");
+                throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR, "无法验证用户身份");
+            }
+            
+            if (!currentUserId.equals(request.getUserId())) {
+                log.warn("支付订单失败：用户ID不匹配，token用户ID={}, 请求用户ID={}", currentUserId, request.getUserId());
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+            }
+            
+            return ResultUtils.success(orderService.payOrder(request));
+        } catch (Exception e) {
+            log.error("支付订单异常: {}", e.getMessage(), e);
+            if (e instanceof BusinessException) {
+                throw e;
+            }
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "支付订单失败: " + e.getMessage());
         }
-        
-        return ResultUtils.success(orderService.payOrder(request));
     }
 
     @PutMapping("/confirm-receipt")
     public BaseResponse<OrderVO> confirmReceipt(@RequestBody OrderConfirmReceiptRequest request, HttpServletRequest httpServletRequest) {
         String token = httpServletRequest.getHeader("Authorization");
         if (token == null || !token.startsWith("Bearer ")) {
+            log.warn("确认收货失败：用户未登录");
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
         
-        // 验证当前用户
-        Long currentUserId = jwtUtil.getUserIdFromToken(token.substring(7));
-        if (!currentUserId.equals(request.getUserId())) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        try {
+            // 验证当前用户
+            Long currentUserId = jwtUtil.getUserIdFromToken(token.substring(7));
+            if (currentUserId == null) {
+                log.warn("确认收货失败：无法从token中获取用户ID");
+                throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR, "无法验证用户身份");
+            }
+            
+            if (!currentUserId.equals(request.getUserId())) {
+                log.warn("确认收货失败：用户ID不匹配，token用户ID={}, 请求用户ID={}", currentUserId, request.getUserId());
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+            }
+            
+            return ResultUtils.success(orderService.confirmReceipt(request));
+        } catch (Exception e) {
+            log.error("确认收货异常: {}", e.getMessage(), e);
+            if (e instanceof BusinessException) {
+                throw e;
+            }
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "确认收货失败: " + e.getMessage());
         }
-        
-        return ResultUtils.success(orderService.confirmReceipt(request));
     }
 
     @PutMapping("/notify-shipment")
     public BaseResponse<OrderVO> notifyShipment(@RequestBody OrderNotifyShipmentRequest request, HttpServletRequest httpServletRequest) {
         String token = httpServletRequest.getHeader("Authorization");
         if (token == null || !token.startsWith("Bearer ")) {
+            log.warn("通知发货失败：用户未登录");
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
         
-        // 验证当前用户
-        Long currentUserId = jwtUtil.getUserIdFromToken(token.substring(7));
-        if (!currentUserId.equals(request.getSellerId())) {
-            throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+        try {
+            // 验证当前用户
+            Long currentUserId = jwtUtil.getUserIdFromToken(token.substring(7));
+            if (currentUserId == null) {
+                log.warn("通知发货失败：无法从token中获取用户ID");
+                throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR, "无法验证用户身份");
+            }
+            
+            if (!currentUserId.equals(request.getSellerId())) {
+                log.warn("通知发货失败：用户ID不匹配，token用户ID={}, 请求卖家ID={}", currentUserId, request.getSellerId());
+                throw new BusinessException(ErrorCode.NO_AUTH_ERROR);
+            }
+            
+            return ResultUtils.success(orderService.notifyShipment(request));
+        } catch (Exception e) {
+            log.error("通知发货异常: {}", e.getMessage(), e);
+            if (e instanceof BusinessException) {
+                throw e;
+            }
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "通知发货失败: " + e.getMessage());
         }
-        
-        return ResultUtils.success(orderService.notifyShipment(request));
     }
 }

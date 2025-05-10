@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+@Slf4j
 @Component
 public class JwtUtil {
 
@@ -87,8 +89,14 @@ public class JwtUtil {
     // 验证token是否有效
     public boolean validateToken(String token) {
         try {
-            return !isTokenExpired(token);
+            log.info("正在验证token: {}", token);
+            Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token);
+            return true;
         } catch (Exception e) {
+            log.error("JWT验证失败: {}", e.getMessage(), e);
             return false;
         }
     }

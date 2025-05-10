@@ -14,7 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 商品收藏控制器
@@ -75,7 +77,7 @@ public class ProductFavoriteController {
      * @return 取消收藏结果
      */
     @DeleteMapping("/{productId}")
-    public BaseResponse<String> cancelProductFavorite(
+    public BaseResponse<Boolean> cancelProductFavorite(
             @PathVariable Long productId,
             @RequestHeader(value = "Authorization", required = false) String authorization) {
             
@@ -105,11 +107,7 @@ public class ProductFavoriteController {
         // 5. 调用服务层取消收藏商品
         boolean result = productFavoriteService.cancelProductFavorite(userId, productId);
         
-        if (result) {
-            return ResultUtils.success("取消收藏成功");
-        } else {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "取消收藏失败");
-        }
+        return ResultUtils.success(result);
     }
     
     /**
@@ -148,5 +146,49 @@ public class ProductFavoriteController {
         List<ProductFavoriteVO> favoriteList = productFavoriteService.getFavoriteList(userId);
         
         return ResultUtils.success(favoriteList);
+    }
+    
+    /**
+     * 检查用户是否已收藏商品
+     * @param productId 商品ID
+     * @param authorization 认证头部(Bearer token)
+     * @return 是否已收藏
+     */
+    @GetMapping("/check/{productId}")
+    public BaseResponse<Map<String, Boolean>> checkFavorite(
+            @PathVariable Long productId,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+            
+        Long userId = null;
+        
+        // 1. 从Authorization头中提取Token
+        if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
+            String token = authorization.substring(7);
+            
+            // 2. 验证Token有效性
+            if (!jwtUtil.validateToken(token)) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "无效的token，请重新登录");
+            }
+            
+            // 3. 从Token中提取用户ID
+            userId = jwtUtil.getUserIdFromToken(token);
+        }
+        
+        // 4. 如果从Token中无法获取用户ID，则尝试从请求上下文中获取
+        if (userId == null) {
+            userId = CurrentUserUtils.getCurrentUserId();
+            if (userId == null) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+            }
+        }
+        
+        // 5. 调用服务层检查是否已收藏
+        boolean isFavorite = productFavoriteService.checkUserFavorite(userId, productId);
+        
+        // 6. 构建返回结果
+        Map<String, Boolean> result = new HashMap<>();
+        result.put("isFavorite", isFavorite);
+        
+        return ResultUtils.success(result);
     }
 }

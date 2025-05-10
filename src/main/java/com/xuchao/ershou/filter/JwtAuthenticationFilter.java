@@ -35,7 +35,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/product/image/upload",  // 添加商品图片上传接口
             "/product/image/add-by-url",  // 通过URL添加商品图片接口
             "/file/upload",  // 通用文件上传接口
-            "/files/**"  // 文件访问路径
+            "/files/**",  // 文件访问路径
+            "/alipay/pay",  // 支付宝支付接口
+            "/alipay/notify",  // 支付宝异步回调接口
+            "/alipay/return",  // 支付宝同步回调接口
+            "/order/pay"  // 订单支付接口
     );
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil, ObjectMapper objectMapper) {

@@ -132,4 +132,21 @@ public class ProductFavoriteServiceImpl implements ProductFavoriteService {
         
         return favoriteList;
     }
+    
+    @Override
+    public boolean checkUserFavorite(Long userId, Long productId) {
+        // 参数校验
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "用户未登录");
+        }
+        
+        if (productId == null || productId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "商品ID无效");
+        }
+        
+        // 调用Mapper检查是否已收藏
+        int existCount = productFavoriteMapper.checkUserFavorite(userId, productId);
+        
+        return existCount > 0;
+    }
 }

@@ -32,5 +32,13 @@ public interface ProductFavoriteService {
      * @return 收藏商品列表
      */
     List<ProductFavoriteVO> getFavoriteList(Long userId);
+    
+    /**
+     * 检查用户是否已收藏商品
+     * @param userId 用户ID
+     * @param productId 商品ID
+     * @return 是否已收藏
+     */
+    boolean checkUserFavorite(Long userId, Long productId);
 }
                                                                                 

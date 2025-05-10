@@ -5,3 +5,74 @@ alipay:
   notifyUrl: http://rbe6864f.natappfree.cc/alipay/notify
   returnUrl: http://rbe6864f.natappfree.cc/alipay/return
   gatewayUrl: https://openapi-sandbox.dl.alipaydev.com/gateway.do
+
+# 数据源配置
+spring:
+  application:
+    name: ershou
+  datasource:
+    url: jdbc:mysql://localhost:3306/ershou?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  # 文件上传配置
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  # Redis配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 1800000
+
+# MyBatis Plus配置
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+# 日志配置
+logging:
+  level:
+    com:
+      xuchao:
+        ershou: debug
+        ershou.service.impl.BaiduImageAuditServiceImpl: DEBUG
+    com.baidu.aip: DEBUG
+
+# JWT配置
+jwt:
+  secret: your_secret_key_at_least_32_bytes_long_1234567896846486464864864856456560
+  expiration: 86400000
+
+# 文件上传路径
+file:
+  upload:
+    path: E:/upload/images
+    url:
+      prefix: http://${file.server.ip}:${file.server.port}/images
+  server:
+    ip: 192.168.0.103
+    port: 8080
+
+# 阿里云短信服务配置
+aliyun:
+  sms:
+    accessKeyId: your_access_key_id
+    accessKeySecret: your_access_key_secret
+    signName: your_sign_name
+    templateCode:
+      register: SMS_123456789
+      forgetPassword: SMS_123456790
+      paymentPassword: SMS_123456791
+
+# 百度AI内容审核配置
+baidu:
+  ai:
+    appId: 118810361
+    apiKey: JRUFMLoMX4OXH0eWsUENQ8wr
+    secretKey: qE4yQ9sQaWBchWV7Dr1lbCmQ0aKICdh4
+    mock: false 

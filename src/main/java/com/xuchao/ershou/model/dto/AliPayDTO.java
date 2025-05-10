@@ -2,9 +2,11 @@ package com.xuchao.ershou.model.dto;
 
 import lombok.Data;
 
+/**
+ * 支付宝支付DTO类
+ */
 @Data
 public class AliPayDTO {
-    
     /**
      * 商户订单号，商户网站订单系统中唯一订单号
      */
@@ -24,9 +26,4 @@ public class AliPayDTO {
      * 商品描述
      */
     private String body;
-    
-    /**
-     * 支付结束后的跳转链接
-     */
-    private String returnUrl;
 } 
