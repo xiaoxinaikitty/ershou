@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -90,7 +91,7 @@ public class AliPayController {
             AliPayDTO aliPayDTO = new AliPayDTO();
             aliPayDTO.setTraceNo(traceNo);
             // 确保金额格式正确，保留两位小数
-            aliPayDTO.setTotalAmount(order.getPaymentAmount().setScale(2, BigDecimal.ROUND_HALF_UP).toString());
+            aliPayDTO.setTotalAmount(order.getPaymentAmount().setScale(2, RoundingMode.HALF_UP).toString());
             // 设置商品名称，确保长度不超过支付宝限制
             String subject = "闲转商品购买 - " + order.getOrderNo();
             if (subject.length() > 128) {

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xuchao.ershou.mapper.DataAnalysisMapper">
+    
+    <!-- ProductMapper 分析相关方法 -->
+    <select id="getCategoryStatistics" resultType="java.util.Map">
+        SELECT p.category_id as categoryId, COUNT(p.product_id) as count
+        FROM product p
+        GROUP BY p.category_id
+    </select>
+    
+    <select id="getPriceRangeStatistics" resultType="java.util.Map">
+        SELECT p.price, COUNT(*) as count
+        FROM product p
+        GROUP BY p.price
+    </select>
+    
+    <select id="getConditionStatistics" resultType="java.util.Map">
+        SELECT p.condition_level as conditionLevel, COUNT(*) as count
+        FROM product p
+        GROUP BY p.condition_level
+    </select>
+    
+    <select id="getStatusStatistics" resultType="java.util.Map">
+        SELECT p.status, COUNT(*) as count
+        FROM product p
+        GROUP BY p.status
+    </select>
+    
+    <select id="getProductTrend" resultType="java.util.Map">
+        SELECT DATE(p.created_time) as date, COUNT(*) as count
+        FROM product p
+        WHERE DATE(p.created_time) BETWEEN #{startDate} AND #{endDate}
+        GROUP BY DATE(p.created_time)
+    </select>
+    
+    <select id="getHotProducts" resultType="java.util.Map">
+        SELECT 
+            p.product_id as productId,
+            p.title,
+            p.price,
+            p.view_count as viewCount,
+            (SELECT COUNT(*) FROM product_favorite pf WHERE pf.product_id = p.product_id) as favoriteCount,
+            (SELECT COUNT(*) FROM `order` o WHERE o.product_id = p.product_id AND o.order_status >= 2) as soldCount
+        FROM product p
+        ORDER BY (p.view_count * 0.4 + 
+                 (SELECT COUNT(*) FROM product_favorite pf WHERE pf.product_id = p.product_id) * 0.3 + 
+                 (SELECT COUNT(*) FROM `order` o WHERE o.product_id = p.product_id AND o.order_status >= 2) * 0.3) DESC
+        LIMIT #{limit}
+    </select>
+    
+    <select id="getTotalProductCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM product
+    </select>
+    
+    <select id="getNewProductCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) 
+        FROM product 
+        WHERE DATE(created_time) BETWEEN #{startDate} AND #{endDate}
+    </select>
+    
+    <select id="getCategoryStatisticsByDateRange" resultType="java.util.Map">
+        SELECT p.category_id as categoryId, COUNT(p.product_id) as count
+        FROM product p
+        WHERE DATE(p.created_time) BETWEEN #{startDate} AND #{endDate}
+        GROUP BY p.category_id
+    </select>
+    
+    <select id="getStatusStatisticsByDateRange" resultType="java.util.Map">
+        SELECT p.status, COUNT(*) as count
+        FROM product p
+        WHERE DATE(p.created_time) BETWEEN #{startDate} AND #{endDate}
+        GROUP BY p.status
+    </select>
+    
+    <!-- UserMapper 分析相关方法 -->
+    <select id="getUserRegisterTrend" resultType="java.util.Map">
+        SELECT DATE(u.create_time) as date, COUNT(*) as count
+        FROM user u
+        WHERE DATE(u.create_time) BETWEEN #{startDate} AND #{endDate}
+        GROUP BY DATE(u.create_time)
+    </select>
+    
+    <select id="getActiveUserData" resultType="java.util.Map">
+        SELECT 
+            u.user_id as userId,
+            u.username,
+            (SELECT COUNT(*) FROM product p WHERE p.user_id = u.user_id AND p.created_time BETWEEN #{startDate} AND #{endDate}) as productCount,
+            (SELECT COUNT(*) FROM `order` o WHERE o.user_id = u.user_id AND o.created_time BETWEEN #{startDate} AND #{endDate}) as orderCount,
+            (SELECT COUNT(*) FROM product_favorite pf WHERE pf.user_id = u.user_id AND pf.created_time BETWEEN #{startDate} AND #{endDate}) as favoriteCount
+        FROM user u
+        WHERE 
+            EXISTS (SELECT 1 FROM product p WHERE p.user_id = u.user_id AND p.created_time BETWEEN #{startDate} AND #{endDate})
+            OR EXISTS (SELECT 1 FROM `order` o WHERE o.user_id = u.user_id AND o.created_time BETWEEN #{startDate} AND #{endDate})
+            OR EXISTS (SELECT 1 FROM product_favorite pf WHERE pf.user_id = u.user_id AND pf.created_time BETWEEN #{startDate} AND #{endDate})
+    </select>
+    
+    <select id="getTotalUserCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM user
+    </select>
+    
+    <select id="getActiveSellUserCount" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT user_id) FROM product
+    </select>
+    
+    <select id="getActiveBuyUserCount" resultType="java.lang.Integer">
+        SELECT COUNT(DISTINCT user_id) FROM `order`
+    </select>
+    
+    <select id="getNewUserCount" resultType="java.lang.Integer">
+        SELECT COUNT(*) 
+        FROM user 
+        WHERE DATE(create_time) BETWEEN #{startDate} AND #{endDate}
+    </select>
+    
+    <!-- OrderMapper 分析相关方法 -->
+    <select id="getOrderTrend" resultType="java.util.Map">
+        SELECT DATE(o.created_time) as date, COUNT(*) as count
+        FROM `order` o
+        WHERE DATE(o.created_time) BETWEEN #{startDate} AND #{endDate}
+        GROUP BY DATE(o.created_time)
+    </select>
+    
+    <select id="getOrderAmountTrend" resultType="java.util.Map">
+        SELECT 
+            DATE(o.created_time) as date, 
+            SUM(o.order_amount) as amount,
+            COUNT(*) as count
+        FROM `order` o
+        WHERE DATE(o.created_time) BETWEEN #{startDate} AND #{endDate}
+        GROUP BY DATE(o.created_time)
+    </select>
+    
+    <select id="getOrderStatusStatistics" resultType="java.util.Map">
+        SELECT o.order_status as status, COUNT(*) as count
+        FROM `order` o
+        GROUP BY o.order_status
+    </select>
+    
+    <select id="getOrderSummary" resultType="java.util.Map">
+        SELECT 
+            COUNT(*) as totalOrders,
+            IFNULL(SUM(order_amount), 0) as totalAmount
+        FROM `order`
+    </select>
+    
+    <select id="getRecentOrderSummary" resultType="java.util.Map">
+        SELECT 
+            COUNT(*) as totalOrders,
+            IFNULL(SUM(order_amount), 0) as totalAmount
+        FROM `order`
+        WHERE DATE(created_time) BETWEEN #{startDate} AND #{endDate}
+    </select>
+    
+    <select id="getOrderStatusStatisticsByDateRange" resultType="java.util.Map">
+        SELECT o.order_status as status, COUNT(*) as count
+        FROM `order` o
+        WHERE DATE(o.created_time) BETWEEN #{startDate} AND #{endDate}
+        GROUP BY o.order_status
+    </select>
+    
+</mapper> 

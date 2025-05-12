@@ -113,4 +113,11 @@ public class Result<T> {
         result.setMessage(message);
         return result;
     }
+    
+    /**
+     * 返回带数据的成功结果 (为兼容数据分析功能)
+     */
+    public static <T> Result<T> success(T data) {
+        return ok(data);
+    }
 } 

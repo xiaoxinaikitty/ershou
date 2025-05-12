@@ -6,6 +6,8 @@ import com.xuchao.ershou.model.entity.UserAddress;
 import com.xuchao.ershou.model.dao.user.UserPageQueryDao;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
+import java.time.LocalDate;
+import java.util.Map;
 
 public interface UserMapper extends BaseMapper<User> {
     int insertUser(User user);
@@ -71,4 +73,46 @@ public interface UserMapper extends BaseMapper<User> {
      * @return 用户角色
      */
     String selectUserRoleById(@Param("userId") Long userId);
+
+    /**
+     * 获取用户注册趋势
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @return 注册趋势数据
+     */
+    List<Map<String, Object>> getUserRegisterTrend(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    /**
+     * 获取活跃用户数据
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @return 活跃用户数据
+     */
+    List<Map<String, Object>> getActiveUserData(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    /**
+     * 获取总用户数
+     * @return 总用户数
+     */
+    Integer getTotalUserCount();
+
+    /**
+     * 获取活跃卖家数
+     * @return 活跃卖家数
+     */
+    Integer getActiveSellUserCount();
+
+    /**
+     * 获取活跃买家数
+     * @return 活跃买家数
+     */
+    Integer getActiveBuyUserCount();
+
+    /**
+     * 获取新增用户数
+     * @param startDate 开始日期
+     * @param endDate 结束日期
+     * @return 新增用户数
+     */
+    Integer getNewUserCount(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

@@ -7,7 +7,9 @@ import com.xuchao.ershou.model.entity.Product;
 import com.xuchao.ershou.model.vo.ProductPageVO;
 import org.apache.ibatis.annotations.Param;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 商品Mapper接口
@@ -72,4 +74,54 @@ public interface ProductMapper extends BaseMapper<Product> {
      * @return 符合搜索条件的商品总数
      */
     long countSearchProducts(@Param("search") ProductSearchDao searchParams);
+    
+    /**
+     * 获取商品分类统计
+     */
+    List<Map<String, Object>> getCategoryStatistics();
+    
+    /**
+     * 获取商品价格区间统计
+     */
+    List<Map<String, Object>> getPriceRangeStatistics();
+    
+    /**
+     * 获取商品成色统计
+     */
+    List<Map<String, Object>> getConditionStatistics();
+    
+    /**
+     * 获取商品状态统计
+     */
+    List<Map<String, Object>> getStatusStatistics();
+    
+    /**
+     * 获取商品发布趋势
+     */
+    List<Map<String, Object>> getProductTrend(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    
+    /**
+     * 获取总商品数
+     */
+    Integer getTotalProductCount();
+    
+    /**
+     * 获取新增商品数
+     */
+    Integer getNewProductCount(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    
+    /**
+     * 获取热门商品
+     */
+    List<Map<String, Object>> getHotProducts(@Param("limit") Integer limit);
+    
+    /**
+     * 获取指定日期范围内的分类统计
+     */
+    List<Map<String, Object>> getCategoryStatisticsByDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+    
+    /**
+     * 获取指定日期范围内的状态统计
+     */
+    List<Map<String, Object>> getStatusStatisticsByDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

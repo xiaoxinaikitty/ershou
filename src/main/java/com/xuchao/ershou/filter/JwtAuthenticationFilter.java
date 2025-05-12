@@ -39,7 +39,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/alipay/pay",  // 支付宝支付接口
             "/alipay/notify",  // 支付宝异步回调接口
             "/alipay/return",  // 支付宝同步回调接口
-            "/order/pay"  // 订单支付接口
+            "/order/pay",  // 订单支付接口
+            "/data/analysis/**"  // 添加数据分析相关接口
     );
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil, ObjectMapper objectMapper) {
