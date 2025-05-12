@@ -440,4 +440,10 @@ public class OrderServiceImpl implements OrderService {
         
         return orderVO;
     }
+
+    @Override
+    public int countOrdersByStatus(Long userId, Integer status) {
+        // 使用现有的orderMapper实现订单数量统计
+        return orderMapper.countOrdersByUserIdAndStatus(userId, status);
+    }
 }

@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 用户反馈Service实现类
@@ -91,5 +93,68 @@ public class UserFeedbackServiceImpl extends ServiceImpl<UserFeedbackMapper, Use
         wrapper.eq(UserFeedback::getUserId, userId);
         
         return remove(wrapper);
+    }
+    
+    @Override
+    public Map<String, Object> getFeedbackCount() {
+        // 创建结果Map
+        Map<String, Object> resultMap = new HashMap<>();
+        
+        // 查询总数量
+        long totalCount = count();
+        resultMap.put("totalCount", totalCount);
+        
+        // 查询未处理数量
+        LambdaQueryWrapper<UserFeedback> unprocessedQuery = new LambdaQueryWrapper<>();
+        unprocessedQuery.eq(UserFeedback::getStatus, FeedbackStatusEnum.UNPROCESSED.getCode());
+        long unprocessedCount = count(unprocessedQuery);
+        resultMap.put("unprocessedCount", unprocessedCount);
+        
+        // 查询处理中数量
+        LambdaQueryWrapper<UserFeedback> processingQuery = new LambdaQueryWrapper<>();
+        processingQuery.eq(UserFeedback::getStatus, FeedbackStatusEnum.PROCESSING.getCode());
+        long processingCount = count(processingQuery);
+        resultMap.put("processingCount", processingCount);
+        
+        // 查询已处理数量
+        LambdaQueryWrapper<UserFeedback> processedQuery = new LambdaQueryWrapper<>();
+        processedQuery.eq(UserFeedback::getStatus, FeedbackStatusEnum.PROCESSED.getCode());
+        long processedCount = count(processedQuery);
+        resultMap.put("processedCount", processedCount);
+        
+        // 按反馈类型统计
+        Map<String, Object> typeCounts = new HashMap<>();
+        for (int i = 1; i <= 5; i++) {
+            LambdaQueryWrapper<UserFeedback> typeQuery = new LambdaQueryWrapper<>();
+            typeQuery.eq(UserFeedback::getFeedbackType, i);
+            long typeCount = count(typeQuery);
+            typeCounts.put("type" + i + "Count", typeCount);
+        }
+        resultMap.put("typeCounts", typeCounts);
+        
+        // 按优先级统计
+        Map<String, Object> priorityCounts = new HashMap<>();
+        
+        // 普通优先级
+        LambdaQueryWrapper<UserFeedback> normalQuery = new LambdaQueryWrapper<>();
+        normalQuery.eq(UserFeedback::getPriorityLevel, 0);
+        long normalCount = count(normalQuery);
+        priorityCounts.put("normalCount", normalCount);
+        
+        // 重要优先级
+        LambdaQueryWrapper<UserFeedback> importantQuery = new LambdaQueryWrapper<>();
+        importantQuery.eq(UserFeedback::getPriorityLevel, 1);
+        long importantCount = count(importantQuery);
+        priorityCounts.put("importantCount", importantCount);
+        
+        // 紧急优先级
+        LambdaQueryWrapper<UserFeedback> urgentQuery = new LambdaQueryWrapper<>();
+        urgentQuery.eq(UserFeedback::getPriorityLevel, 2);
+        long urgentCount = count(urgentQuery);
+        priorityCounts.put("urgentCount", urgentCount);
+        
+        resultMap.put("priorityCounts", priorityCounts);
+        
+        return resultMap;
     }
 } 

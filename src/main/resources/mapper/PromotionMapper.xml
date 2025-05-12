@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xuchao.ershou.mapper.PromotionMapper">
+
+    <!-- 返回结果映射 -->
+    <resultMap id="PromotionVOMap" type="com.xuchao.ershou.model.vo.PromotionVO">
+        <id property="promotionId" column="promotion_id"/>
+        <result property="title" column="title"/>
+        <result property="description" column="description"/>
+        <result property="promotionType" column="promotion_type"/>
+        <result property="promotionTypeDesc" column="promotion_type_desc"/>
+        <result property="startTime" column="start_time"/>
+        <result property="endTime" column="end_time"/>
+        <result property="status" column="status"/>
+        <result property="statusDesc" column="status_desc"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="urlLink" column="url_link"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdByUsername" column="created_by_username"/>
+        <result property="createdTime" column="created_time"/>
+        <result property="updatedTime" column="updated_time"/>
+        <!-- 图片集合将通过Java代码关联获取 -->
+    </resultMap>
+
+    <!-- 分页查询营销活动列表 -->
+    <select id="selectPromotionList" resultMap="PromotionVOMap">
+        SELECT
+            p.promotion_id,
+            p.title,
+            p.description,
+            p.promotion_type,
+            CASE p.promotion_type
+                WHEN 1 THEN '促销活动'
+                WHEN 2 THEN '折扣'
+                WHEN 3 THEN '满减'
+                WHEN 4 THEN '优惠券'
+                ELSE '未知'
+            END AS promotion_type_desc,
+            p.start_time,
+            p.end_time,
+            p.status,
+            CASE p.status
+                WHEN 0 THEN '下线'
+                WHEN 1 THEN '上线'
+                ELSE '未知'
+            END AS status_desc,
+            p.sort_order,
+            p.url_link,
+            p.created_by,
+            u.username AS created_by_username,
+            p.created_time,
+            p.updated_time
+        FROM
+            promotion p
+        LEFT JOIN
+            user u ON p.created_by = u.user_id
+        <where>
+            <if test="title != null and title != ''">
+                AND p.title LIKE CONCAT('%', #{title}, '%')
+            </if>
+            <if test="promotionType != null">
+                AND p.promotion_type = #{promotionType}
+            </if>
+            <if test="status != null">
+                AND p.status = #{status}
+            </if>
+            <if test="startTimeBegin != null">
+                AND p.start_time >= #{startTimeBegin}
+            </if>
+            <if test="startTimeEnd != null">
+                AND p.start_time &lt;= #{startTimeEnd}
+            </if>
+            <if test="endTimeBegin != null">
+                AND p.end_time >= #{endTimeBegin}
+            </if>
+            <if test="endTimeEnd != null">
+                AND p.end_time &lt;= #{endTimeEnd}
+            </if>
+        </where>
+        ORDER BY
+            p.sort_order DESC, p.created_time DESC
+    </select>
+
+    <!-- 查询营销活动详情 -->
+    <select id="selectPromotionDetail" resultMap="PromotionVOMap">
+        SELECT
+            p.promotion_id,
+            p.title,
+            p.description,
+            p.promotion_type,
+            CASE p.promotion_type
+                WHEN 1 THEN '促销活动'
+                WHEN 2 THEN '折扣'
+                WHEN 3 THEN '满减'
+                WHEN 4 THEN '优惠券'
+                ELSE '未知'
+            END AS promotion_type_desc,
+            p.start_time,
+            p.end_time,
+            p.status,
+            CASE p.status
+                WHEN 0 THEN '下线'
+                WHEN 1 THEN '上线'
+                ELSE '未知'
+            END AS status_desc,
+            p.sort_order,
+            p.url_link,
+            p.created_by,
+            u.username AS created_by_username,
+            p.created_time,
+            p.updated_time
+        FROM
+            promotion p
+        LEFT JOIN
+            user u ON p.created_by = u.user_id
+        WHERE
+            p.promotion_id = #{promotionId}
+    </select>
+
+    <!-- 查询有效的营销活动列表 -->
+    <select id="selectActivePromotions" resultMap="PromotionVOMap">
+        SELECT
+            p.promotion_id,
+            p.title,
+            p.description,
+            p.promotion_type,
+            CASE p.promotion_type
+                WHEN 1 THEN '促销活动'
+                WHEN 2 THEN '折扣'
+                WHEN 3 THEN '满减'
+                WHEN 4 THEN '优惠券'
+                ELSE '未知'
+            END AS promotion_type_desc,
+            p.start_time,
+            p.end_time,
+            p.status,
+            CASE p.status
+                WHEN 0 THEN '下线'
+                WHEN 1 THEN '上线'
+                ELSE '未知'
+            END AS status_desc,
+            p.sort_order,
+            p.url_link,
+            p.created_by,
+            u.username AS created_by_username,
+            p.created_time,
+            p.updated_time
+        FROM
+            promotion p
+        LEFT JOIN
+            user u ON p.created_by = u.user_id
+        WHERE
+            p.status = 1
+            AND p.start_time &lt;= #{currentTime}
+            AND p.end_time > #{currentTime}
+        ORDER BY
+            p.sort_order DESC, p.created_time DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper> 

@@ -38,4 +38,13 @@
         WHERE order_id = #{orderId}
     </update>
     
+    <!-- 添加countOrdersByUserIdAndStatus方法的SQL实现 -->
+    <select id="countOrdersByUserIdAndStatus" resultType="int">
+        SELECT COUNT(*) FROM `order` 
+        WHERE user_id = #{userId}
+        <if test="status != null">
+            AND order_status = #{status}
+        </if>
+    </select>
+    
 </mapper>

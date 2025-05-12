@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xuchao.ershou.mapper.PromotionImageMapper">
+
+    <!-- 返回结果映射 -->
+    <resultMap id="PromotionImageVOMap" type="com.xuchao.ershou.model.vo.PromotionImageVO">
+        <id property="imageId" column="image_id"/>
+        <result property="promotionId" column="promotion_id"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="imageType" column="image_type"/>
+        <result property="imageTypeDesc" column="image_type_desc"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createdTime" column="created_time"/>
+    </resultMap>
+
+    <!-- 查询营销活动的图片列表 -->
+    <select id="selectImagesByPromotionId" resultMap="PromotionImageVOMap">
+        SELECT
+            i.image_id,
+            i.promotion_id,
+            i.image_url,
+            i.image_type,
+            CASE i.image_type
+                WHEN 1 THEN '轮播图'
+                WHEN 2 THEN '展示图'
+                ELSE '未知'
+            END AS image_type_desc,
+            i.sort_order,
+            i.created_time
+        FROM
+            promotion_image i
+        WHERE
+            i.promotion_id = #{promotionId}
+        ORDER BY
+            i.sort_order DESC, i.image_id ASC
+    </select>
+
+    <!-- 查询指定类型的图片列表 -->
+    <select id="selectImagesByType" resultMap="PromotionImageVOMap">
+        SELECT
+            i.image_id,
+            i.promotion_id,
+            i.image_url,
+            i.image_type,
+            CASE i.image_type
+                WHEN 1 THEN '轮播图'
+                WHEN 2 THEN '展示图'
+                ELSE '未知'
+            END AS image_type_desc,
+            i.sort_order,
+            i.created_time
+        FROM
+            promotion_image i
+        WHERE
+            i.promotion_id = #{promotionId}
+            AND i.image_type = #{imageType}
+        ORDER BY
+            i.sort_order DESC, i.image_id ASC
+    </select>
+
+    <!-- 批量添加图片 -->
+    <insert id="batchInsert" parameterType="java.util.List">
+        INSERT INTO promotion_image (
+            promotion_id,
+            image_url,
+            image_type,
+            sort_order,
+            created_time
+        ) VALUES
+        <foreach collection="images" item="item" separator=",">
+            (
+                #{item.promotionId},
+                #{item.imageUrl},
+                #{item.imageType},
+                #{item.sortOrder},
+                NOW()
+            )
+        </foreach>
+    </insert>
+
+</mapper> 

@@ -56,4 +56,12 @@ public interface OrderService {
      * @return 更新后的订单信息
      */
     OrderVO notifyShipment(OrderNotifyShipmentRequest request);
+
+    /**
+     * 根据用户ID和订单状态统计订单数量
+     * @param userId 用户ID
+     * @param status 订单状态
+     * @return 订单数量
+     */
+    int countOrdersByStatus(Long userId, Integer status);
 }

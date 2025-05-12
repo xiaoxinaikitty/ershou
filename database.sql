@@ -329,3 +329,74 @@ CREATE TABLE `user_feedback` (
   KEY `idx_created_time` (`created_time`),
   CONSTRAINT `fk_feedback_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户反馈表';
+
+-- 营销活动表
+CREATE TABLE `promotion` (
+  `promotion_id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '营销活动ID',
+  `title` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '活动标题',
+  `description` text COLLATE utf8mb4_unicode_ci COMMENT '活动描述',
+  `promotion_type` tinyint NOT NULL COMMENT '活动类型(1促销活动 2折扣 3满减 4优惠券)',
+  `start_time` datetime NOT NULL COMMENT '开始时间',
+  `end_time` datetime NOT NULL COMMENT '结束时间',
+  `status` tinyint NOT NULL DEFAULT 1 COMMENT '状态(0下线 1上线)',
+  `sort_order` int DEFAULT 0 COMMENT '排序号，值越大越靠前',
+  `url_link` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '点击跳转链接',
+  `created_by` bigint unsigned NOT NULL COMMENT '创建人ID',
+  `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`promotion_id`),
+  KEY `idx_type` (`promotion_type`),
+  KEY `idx_status` (`status`),
+  KEY `idx_time` (`start_time`, `end_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='营销活动表';
+
+-- 营销活动图片表
+CREATE TABLE `promotion_image` (
+  `image_id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '图片ID',
+  `promotion_id` bigint unsigned NOT NULL COMMENT '关联的营销活动ID',
+  `image_url` text COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '图片URL',
+  `image_type` tinyint DEFAULT 1 COMMENT '图片类型(1轮播图 2展示图)',
+  `sort_order` int DEFAULT 0 COMMENT '排序号，值越大越靠前',
+  `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`image_id`),
+  KEY `idx_promotion` (`promotion_id`),
+  CONSTRAINT `fk_promotion_image` FOREIGN KEY (`promotion_id`) REFERENCES `promotion` (`promotion_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='营销活动图片表';
+
+-- 优惠券表
+CREATE TABLE `coupon` (
+  `coupon_id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '优惠券ID',
+  `promotion_id` bigint unsigned NOT NULL COMMENT '关联的营销活动ID',
+  `coupon_name` varchar(100) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '优惠券名称',
+  `coupon_code` varchar(50) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '优惠券码',
+  `discount_type` tinyint NOT NULL COMMENT '优惠类型(1固定金额 2折扣百分比)',
+  `discount_value` decimal(10,2) NOT NULL COMMENT '优惠值(固定金额或折扣百分比)',
+  `min_purchase` decimal(10,2) DEFAULT 0 COMMENT '最低消费金额',
+  `quantity` int DEFAULT NULL COMMENT '优惠券数量(NULL表示无限)',
+  `issued_count` int DEFAULT 0 COMMENT '已发放数量',
+  `used_count` int DEFAULT 0 COMMENT '已使用数量',
+  `valid_days` int DEFAULT NULL COMMENT '有效天数(从领取时开始计算)',
+  `usage_limit_per_user` int DEFAULT 1 COMMENT '每用户可领取数量限制',
+  `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`coupon_id`),
+  KEY `idx_promotion` (`promotion_id`),
+  CONSTRAINT `fk_coupon_promotion` FOREIGN KEY (`promotion_id`) REFERENCES `promotion` (`promotion_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='优惠券表';
+
+-- 用户优惠券表
+CREATE TABLE `user_coupon` (
+  `user_coupon_id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '用户优惠券ID',
+  `user_id` bigint unsigned NOT NULL COMMENT '用户ID',
+  `coupon_id` bigint unsigned NOT NULL COMMENT '优惠券ID',
+  `receive_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '领取时间',
+  `expire_time` datetime NOT NULL COMMENT '过期时间',
+  `use_time` datetime DEFAULT NULL COMMENT '使用时间',
+  `order_id` bigint DEFAULT NULL COMMENT '使用的订单ID',
+  `status` tinyint NOT NULL DEFAULT 0 COMMENT '状态(0未使用 1已使用 2已过期)',
+  PRIMARY KEY (`user_coupon_id`),
+  KEY `idx_user` (`user_id`),
+  KEY `idx_coupon` (`coupon_id`),
+  KEY `idx_status` (`status`),
+  CONSTRAINT `fk_user_coupon_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_user_coupon_coupon` FOREIGN KEY (`coupon_id`) REFERENCES `coupon` (`coupon_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户优惠券表';

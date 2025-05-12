@@ -1,10 +1,6 @@
 package com.xuchao.ershou.controller;
 
-import com.xuchao.ershou.common.BaseResponse;
-import com.xuchao.ershou.common.CurrentUserUtils;
-import com.xuchao.ershou.common.ErrorCode;
-import com.xuchao.ershou.common.ResultUtils;
-import com.xuchao.ershou.common.JwtUtil;
+import com.xuchao.ershou.common.*;
 import com.xuchao.ershou.exception.BusinessException;
 import com.xuchao.ershou.model.dao.order.OrderCancelDao;
 import com.xuchao.ershou.model.dao.order.OrderCreateDao;
@@ -19,8 +15,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * 订单控制器
@@ -268,6 +268,73 @@ public class OrderController {
                 throw e;
             }
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "通知发货失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取当前登录用户ID
+     * @return 用户ID，未登录返回null
+     */
+    private Long getUserId() {
+        // 尝试从请求上下文中获取用户ID
+        Long userId = CurrentUserUtils.getCurrentUserId();
+        
+        // 如果无法获取，尝试从请求头中获取token
+        if (userId == null && RequestContextHolder.getRequestAttributes() != null) {
+            HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+            String token = request.getHeader("Authorization");
+            
+            if (token != null && token.startsWith("Bearer ")) {
+                try {
+                    // 验证Token有效性
+                    token = token.substring(7);
+                    if (jwtUtil.validateToken(token)) {
+                        userId = jwtUtil.getUserIdFromToken(token);
+                    }
+                } catch (Exception e) {
+                    log.error("JWT令牌验证或解析失败: {}", e.getMessage(), e);
+                }
+            }
+        }
+        
+        return userId;
+    }
+
+    /**
+     * 获取当前用户各状态的订单数量
+     */
+    @GetMapping("/count")
+    public BaseResponse<Map<String, Integer>> getOrderCount() {
+        // 获取当前登录用户信息
+        Long userId = getUserId();
+        if (userId == null) {
+            return ResultUtils.error(ErrorCode.NOT_LOGIN_ERROR.getCode(), "用户未登录");
+        }
+        
+        try {
+            // 获取各状态订单数量
+            int pendingPayment = orderService.countOrdersByStatus(userId, 0); // 待付款
+            int pendingShipment = orderService.countOrdersByStatus(userId, 1); // 待发货
+            int pendingReceipt = orderService.countOrdersByStatus(userId, 2); // 待收货
+            int completed = orderService.countOrdersByStatus(userId, 3); // 已完成
+            int cancelled = orderService.countOrdersByStatus(userId, 4); // 已取消
+            int afterSale = orderService.countOrdersByStatus(userId, 5); // 售后中
+            int total = pendingPayment + pendingShipment + pendingReceipt + completed + cancelled + afterSale;
+            
+            // 构建返回结果
+            Map<String, Integer> countMap = new HashMap<>();
+            countMap.put("pendingPayment", pendingPayment);
+            countMap.put("pendingShipment", pendingShipment);
+            countMap.put("pendingReceipt", pendingReceipt);
+            countMap.put("completed", completed);
+            countMap.put("cancelled", cancelled);
+            countMap.put("afterSale", afterSale);
+            countMap.put("total", total);
+            
+            return ResultUtils.success(countMap);
+        } catch (Exception e) {
+            log.error("获取订单数量统计失败", e);
+            return ResultUtils.error(ErrorCode.SYSTEM_ERROR.getCode(), "获取订单数量统计失败");
         }
     }
 }

@@ -7,6 +7,8 @@ import com.xuchao.ershou.model.dao.feedback.FeedbackReplyDao;
 import com.xuchao.ershou.model.entity.UserFeedback;
 import com.xuchao.ershou.model.vo.UserFeedbackVO;
 
+import java.util.Map;
+
 /**
  * 用户反馈Service接口
  */
@@ -70,4 +72,11 @@ public interface UserFeedbackService extends IService<UserFeedback> {
      * @return 是否成功
      */
     boolean deleteFeedback(Long userId, Long feedbackId);
+    
+    /**
+     * 获取所有用户反馈消息的数量统计
+     * 按状态、类型和优先级分类统计
+     * @return 包含各类统计数据的Map
+     */
+    Map<String, Object> getFeedbackCount();
 } 

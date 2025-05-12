@@ -211,4 +211,25 @@ public class UserFeedbackController {
         boolean success = userFeedbackService.setPriorityLevel(feedbackId, priorityLevel);
         return ResultUtils.success(success);
     }
+    
+    /**
+     * 获取所有用户反馈消息的数量统计
+     * @return 反馈数量统计
+     */
+    @GetMapping("/admin/feedback/count")
+    public BaseResponse<Map<String, Object>> getFeedbackCount() {
+        // 获取当前用户ID
+        Long userId = CurrentUserUtils.getCurrentUserId();
+        if (userId == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "管理员未登录");
+        }
+        
+        // 验证是否为管理员
+        if (!CurrentUserUtils.isAdmin(userId)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "无权限查看反馈统计");
+        }
+        
+        Map<String, Object> countData = userFeedbackService.getFeedbackCount();
+        return ResultUtils.success(countData);
+    }
 } 

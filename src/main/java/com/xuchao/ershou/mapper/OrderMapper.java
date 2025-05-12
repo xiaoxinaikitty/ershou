@@ -37,4 +37,19 @@ public interface OrderMapper extends BaseMapper<Order> {
      * @return 影响的行数
      */
     int updateOrder(Order order);
+
+    /**
+     * 根据卖家ID查询订单列表
+     * @param sellerId 卖家ID
+     * @return 订单列表
+     */
+    List<Order> selectOrdersBySellerId(@Param("sellerId") Long sellerId);
+    
+    /**
+     * 根据用户ID和订单状态统计订单数量
+     * @param userId 用户ID
+     * @param status 订单状态（可为null，表示查询所有状态）
+     * @return 订单数量
+     */
+    int countOrdersByUserIdAndStatus(@Param("userId") Long userId, @Param("status") Integer status);
 }
