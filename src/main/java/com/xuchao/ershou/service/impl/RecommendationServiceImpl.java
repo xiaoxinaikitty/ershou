@@ -32,6 +32,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     private final SimilarProductsMapper similarProductsMapper;
     private final RecommendationConfigMapper configMapper;
     private final ProductMapper productMapper;
+    private final ProductImageMapper productImageMapper;
 
     /**
      * 记录用户行为
@@ -347,10 +348,58 @@ public class RecommendationServiceImpl implements RecommendationService {
      * 获取商品主图
      */
     private String getProductMainImage(Long productId) {
-        // 查询商品主图逻辑
-        // 由于这里需要访问商品图片表，可以通过关联查询或者单独查询
-        // 这里简化实现，假设已有单独查询方法
-        return "http://example.com/images/product.jpg"; // 实际项目中应当替换为真实图片URL
+        // 查询商品图片表中的主图
+        LambdaQueryWrapper<ProductImage> imageQuery = new LambdaQueryWrapper<>();
+        imageQuery.eq(ProductImage::getProductId, productId)
+                .eq(ProductImage::getIsMain, 1)  // 查询主图
+                .last("LIMIT 1");    // 只需要一张图片
+        
+        ProductImage mainImage = null;
+        try {
+            mainImage = productImageMapper.selectOne(imageQuery);
+        } catch (Exception e) {
+            log.error("查询商品主图异常，商品ID：{}", productId, e);
+        }
+        
+        // 如果找到了主图，返回图片URL
+        if (mainImage != null && mainImage.getImageUrl() != null) {
+            log.info("获取到商品主图URL：{}, 商品ID：{}", mainImage.getImageUrl(), productId);
+            return mainImage.getImageUrl();
+        }
+        
+        // 如果没有找到主图，查询该商品的任意图片
+        LambdaQueryWrapper<ProductImage> anyImageQuery = new LambdaQueryWrapper<>();
+        anyImageQuery.eq(ProductImage::getProductId, productId)
+                .orderByAsc(ProductImage::getSortOrder)
+                .last("LIMIT 1");    // 只需要一张图片
+        
+        try {
+            ProductImage anyImage = productImageMapper.selectOne(anyImageQuery);
+            if (anyImage != null && anyImage.getImageUrl() != null) {
+                log.info("获取到商品图片URL(非主图)：{}, 商品ID：{}", anyImage.getImageUrl(), productId);
+                return anyImage.getImageUrl();
+            }
+        } catch (Exception e) {
+            log.error("查询商品任意图片异常，商品ID：{}", productId, e);
+        }
+        
+        // 如果仍然没有找到图片，使用该商品类别的默认图片
+        try {
+            Product product = productMapper.selectById(productId);
+            if (product != null && product.getCategoryId() != null) {
+                Integer categoryId = product.getCategoryId();
+                String defaultCategoryImage = "/images/category_" + categoryId + ".jpg";
+                log.info("使用商品分类默认图片：{}, 商品ID：{}, 分类ID：{}", defaultCategoryImage, productId, categoryId);
+                return defaultCategoryImage;
+            }
+        } catch (Exception e) {
+            log.error("查询商品分类图片异常，商品ID：{}", productId, e);
+        }
+        
+        // 最终没有找到任何图片时，使用通用默认图片
+        String defaultImage = "/images/product_default.jpg";
+        log.info("使用通用默认图片：{}, 商品ID：{}", defaultImage, productId);
+        return defaultImage;
     }
     
     /**
