@@ -2,7 +2,9 @@ package com.xuchao.ershou.service;
 
 import com.xuchao.ershou.model.dto.AliPayDTO;
 import com.xuchao.ershou.model.entity.Payment;
+import com.xuchao.ershou.model.vo.OrderVO;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,4 +39,18 @@ public interface PaymentService {
      * @return 处理结果
      */
     String handleNotify(Map<String, String> params);
+    
+    /**
+     * 获取待付款商品列表
+     * @param userId 用户ID
+     * @return 待付款商品列表
+     */
+    List<OrderVO> getPendingPaymentList(Long userId);
+    
+    /**
+     * 获取待发货商品列表
+     * @param userId 用户ID
+     * @return 待发货商品列表
+     */
+    List<OrderVO> getWaitingShipmentList(Long userId);
 } 

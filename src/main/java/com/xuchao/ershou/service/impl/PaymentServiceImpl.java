@@ -12,7 +12,10 @@ import com.xuchao.ershou.config.AliPayConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.xuchao.ershou.model.vo.OrderVO;
+import com.xuchao.ershou.service.OrderService;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,6 +27,9 @@ public class PaymentServiceImpl extends ServiceImpl<PaymentMapper, Payment> impl
 
     @Autowired
     private AliPayConfig aliPayConfig;
+    
+    @Autowired
+    private OrderService orderService;
 
     @Override
     public boolean create(Payment payment) {
@@ -268,5 +274,39 @@ public class PaymentServiceImpl extends ServiceImpl<PaymentMapper, Payment> impl
             log.error("支付宝回调处理异常", e);
         }
         return "fail";
+    }
+
+    @Override
+    public List<OrderVO> getPendingPaymentList(Long userId) {
+        log.info("获取用户{}的待付款订单列表", userId);
+        try {
+            // 获取用户所有订单
+            List<OrderVO> allOrders = orderService.getOrderList(userId);
+            
+            // 筛选出待付款订单(状态为0表示待付款)
+            return allOrders.stream()
+                    .filter(order -> order.getOrderStatus() != null && order.getOrderStatus() == 0)
+                    .toList();
+        } catch (Exception e) {
+            log.error("获取待付款订单列表异常", e);
+            throw new RuntimeException("获取待付款订单列表失败", e);
+        }
+    }
+
+    @Override
+    public List<OrderVO> getWaitingShipmentList(Long userId) {
+        log.info("获取用户{}的待发货订单列表", userId);
+        try {
+            // 获取用户所有订单
+            List<OrderVO> allOrders = orderService.getOrderList(userId);
+            
+            // 筛选出待发货订单(状态为1表示已付款待发货)
+            return allOrders.stream()
+                    .filter(order -> order.getOrderStatus() != null && order.getOrderStatus() == 1)
+                    .toList();
+        } catch (Exception e) {
+            log.error("获取待发货订单列表异常", e);
+            throw new RuntimeException("获取待发货订单列表失败", e);
+        }
     }
 } 
